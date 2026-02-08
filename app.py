@@ -1,12 +1,17 @@
 #!/usr/bin/env python3
 """
-Anatomix - Standalone Native App
+Pereste - Standalone Native App
 Launches Flask server and opens native macOS window
 """
+import sys
+import os
+
+# Ensure imports resolve correctly when running inside .app bundle
+sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
+
 import webview
 import threading
 import time
-import os
 import signal
 from server import app
 
@@ -28,7 +33,7 @@ if __name__ == '__main__':
 
     # Create native window
     window = webview.create_window(
-        'Anatomix',
+        'Pereste',
         'http://127.0.0.1:5111',
         width=1400,
         height=900,

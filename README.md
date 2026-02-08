@@ -1,121 +1,90 @@
-# Anatomix
+# Pereste
 
-A lightweight local tool that takes voice transcriptions (from Super Whisper) of Gray's Anatomy Review question sessions and auto-parses them into structured data via a local Ollama model, displaying results in a spreadsheet view and exporting Anki cards.
+Voice transcriptions → LLM-parsed flashcards → Anki export. Works with any subject.
 
 ## Features
 
-- **Rapid-fire parsing** — Paste transcription, hit Ctrl+Enter, instant structured output
-- **Session management** — Set section once, auto-applies to all questions
-- **Real-time stats** — Track correct/incorrect answers and score percentage
-- **Anki export** — One-click export to tab-separated .txt file for direct Anki import
-- **CSV export** — Export all data to CSV for further analysis
-- **Local processing** — Everything runs on your machine via Ollama
-- **Persistent storage** — All entries saved in browser localStorage
+- **Voice recording** — Record directly in-app via Parakeet MLX speech-to-text
+- **LLM parsing** — Transcriptions are parsed into structured question/answer/notes cards
+- **Cloud or Local** — Use Anthropic Claude API or run a local Qwen3-4B model on your Mac
+- **Anki export** — Export as `.apkg` with section filtering, or CSV
+- **Session tracking** — Correct/incorrect stats, section grouping, search and filter
+- **Native macOS app** — Runs as a standalone `.app` via pywebview
 
 ## Quick Start
 
-### 1. Install Ollama
+### From source
 
 ```bash
-# macOS/Linux
-curl -fsSL https://ollama.com/install.sh | sh
+# Clone and install
+git clone https://github.com/youruser/peresteparse.git
+cd peresteparse
+uv sync
 
-# Or download from https://ollama.com
+# Install llama-cpp-python with Metal (Apple Silicon GPU)
+CMAKE_ARGS="-DGGML_METAL=on" uv pip install 'llama-cpp-python>=0.3.0'
+
+# Run
+uv run python app.py
 ```
 
-### 2. Pull the model
+The setup wizard will guide you through choosing Cloud (Anthropic API) or Local (downloads ~2.5GB model).
+
+### Build macOS .app
 
 ```bash
-ollama pull llama3.2
+bash scripts/build_app.sh
+open dist/Pereste.app
 ```
 
-### 3. Install Python dependencies
+To create a distributable DMG:
 
 ```bash
-# Using uv (recommended)
-uv venv
-source .venv/bin/activate  # On Windows: .venv\Scripts\activate
-uv pip install -r requirements.txt
-
-# Or using pip
-pip install -r requirements.txt
+bash scripts/create_dmg.sh
 ```
 
-### 4. Run the server
+## Architecture
 
-```bash
-python server.py
-```
+| File | Purpose |
+|------|---------|
+| `server.py` | Flask backend — parsing, export, config, recording APIs |
+| `static/index.html` | React 18 SPA (served as static file) |
+| `app.py` | pywebview native window wrapper |
 
-The app will open at **http://localhost:5111**
-
-## Usage Workflow
-
-1. **Set your section** — Enter the anatomical region (e.g. "Upper Limb", "Thorax")
-2. **Paste transcription** — Copy your Super Whisper transcription into the text box
-3. **Parse** — Hit Ctrl+Enter or click "Parse Question"
-4. **Review** — Check the parsed entry in the table below
-5. **Repeat** — Text box clears automatically, ready for next question
-6. **Export** — When done, click "Export Anki .txt" to generate importable Anki cards
-
-## Data Model
-
-Each parsed question includes:
-- **number** — Question number from the book (parsed by LLM)
-- **section** — Anatomical region (set by you)
-- **result** — "correct" or "incorrect" (parsed by LLM)
-- **front** — Anki card front — clean question/clinical scenario
-- **back** — Anki card back — answer + key knowledge + reasoning
-- **tags** — 1-4 topic tags for Anki organization
-- **notes** — Extra context, mnemonics, connections (optional)
-
-## Anki Import
-
-1. Export as .txt from the app
-2. In Anki: File → Import
-3. Select the exported .txt file
-4. Choose your deck
-5. Field separator: Tab
-6. Done!
+**Data directory:** `~/.peresteparse/` — config, entries, downloaded models.
 
 ## Configuration
 
-Set environment variables to customize Ollama:
+On first launch, a setup wizard lets you choose:
 
-```bash
-export OLLAMA_URL=http://localhost:11434  # Default
-export OLLAMA_MODEL=llama3.2              # Default
+- **Cloud** — Enter your Anthropic API key. Supports Claude Sonnet 4.5 and Haiku 4.5.
+- **Local** — Downloads Qwen3-4B (Q4_K_M GGUF, ~2.5GB) and runs via llama-cpp-python with Metal acceleration.
 
-python server.py
-```
-
-## Recommended Models
-
-- **llama3.2** (3B) — Best balance of speed and accuracy
-- **llama3.2:1b** — Faster, slightly less accurate
-- **phi3:mini** — Smallest/fastest option
-
-## Troubleshooting
-
-**Ollama connection error?**
-- Make sure Ollama is running: `ollama serve`
-- Check the model is pulled: `ollama list`
-
-**Port 5111 already in use?**
-- Edit `server.py` and change the port number in the last line
-
-**Parsing errors?**
-- Try a different model (see Configuration above)
-- Check your transcription quality
-- Make sure question numbers are mentioned in the transcription
+Settings are stored in `~/.peresteparse/config.json` and can be changed anytime via the gear icon.
 
 ## Tech Stack
 
-- **Backend**: Flask (Python)
-- **Frontend**: React (via CDN)
-- **LLM**: Ollama (local)
-- **Storage**: Browser localStorage
+- **Backend**: Flask + Flask-CORS
+- **Frontend**: React 18 (CDN) + Babel
+- **Cloud LLM**: Anthropic Claude API
+- **Local LLM**: llama-cpp-python + Qwen3-4B GGUF with GBNF grammar
+- **Speech-to-text**: Parakeet MLX
+- **Anki export**: genanki
+- **Native wrapper**: pywebview
 - **Fonts**: JetBrains Mono + Outfit
+
+## Development
+
+```bash
+# Run tests
+uv run pytest
+
+# Run with coverage
+uv run pytest --cov=server
+
+# Run server directly (browser mode)
+uv run python server.py
+```
 
 ## License
 

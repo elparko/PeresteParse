@@ -1,4 +1,12 @@
 flask==3.0.0
 flask-cors==4.0.0
-requests==2.31.0
+llama-cpp-python>=0.3.0
+huggingface-hub>=0.20.0
+parakeet-mlx>=0.5.0
+numba>=0.60
+llvmlite>=0.43
+sounddevice>=0.5.0
+soundfile>=0.12.0
 pywebview==5.3
+anthropic>=0.40.0
+genanki>=0.13.1

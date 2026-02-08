@@ -1,6 +1,6 @@
 {
-  "name": "Anatomix",
-  "short_name": "Anatomix",
+  "name": "Pereste",
+  "short_name": "Pereste",
   "description": "Voice transcription to structured Anki cards",
   "start_url": "/",
   "display": "standalone",

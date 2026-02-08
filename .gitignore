@@ -23,5 +23,9 @@ build/
 .DS_Store
 Thumbs.db
 
+# Test / Coverage
+.coverage
+htmlcov/
+
 # Environment
 .env

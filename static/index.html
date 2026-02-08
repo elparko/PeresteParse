@@ -6,8 +6,8 @@
     <meta name="theme-color" content="#4a9eff">
     <meta name="apple-mobile-web-app-capable" content="yes">
     <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
-    <meta name="apple-mobile-web-app-title" content="Anatomix">
-    <title>Anatomix</title>
+    <meta name="apple-mobile-web-app-title" content="Pereste">
+    <title>Pereste</title>
     <link rel="manifest" href="/manifest.json">
     <link rel="icon" type="image/png" sizes="192x192" href="/icon-192.png">
     <link rel="apple-touch-icon" href="/icon-192.png">
@@ -463,10 +463,79 @@
             border-color: var(--error);
         }
 
-        .export-actions {
+        .export-popup {
+            position: absolute;
+            top: calc(100% + 0.5rem);
+            right: 0;
+            z-index: 100;
+            background: var(--bg-card);
+            border: 1px solid var(--border);
+            border-radius: 8px;
+            padding: 1rem;
+            min-width: 260px;
+            box-shadow: 0 4px 12px rgba(0,0,0,0.3);
+        }
+
+        .export-popup-sections {
+            max-height: 200px;
+            overflow-y: auto;
+            margin-bottom: 0.75rem;
+        }
+
+        .export-popup-section-item {
             display: flex;
-            gap: 1rem;
-            margin-bottom: 2rem;
+            align-items: center;
+            gap: 0.5rem;
+            padding: 0.35rem 0;
+            font-size: 0.9rem;
+            color: var(--text-primary);
+            cursor: pointer;
+        }
+
+        .export-popup-section-item:hover {
+            color: var(--accent);
+        }
+
+        .export-popup-section-item input[type="checkbox"] {
+            accent-color: var(--accent);
+            width: 16px;
+            height: 16px;
+            cursor: pointer;
+        }
+
+        .export-popup-toggle {
+            font-size: 0.8rem;
+            color: var(--accent);
+            cursor: pointer;
+            margin-bottom: 0.5rem;
+            padding: 0;
+            background: none;
+            border: none;
+            font-family: 'Outfit', sans-serif;
+        }
+
+        .export-popup-toggle:hover {
+            color: var(--accent-hover);
+            background: none;
+            transform: none;
+        }
+
+        .export-popup-divider {
+            border: none;
+            border-top: 1px solid var(--border);
+            margin: 0.75rem 0;
+        }
+
+        .export-popup-actions {
+            display: flex;
+            flex-direction: column;
+            gap: 0.5rem;
+        }
+
+        .export-popup-actions button {
+            width: 100%;
+            padding: 0.6rem;
+            font-size: 0.9rem;
         }
 
         .empty-state {
@@ -505,6 +574,15 @@
             to { transform: rotate(360deg); }
         }
 
+        @keyframes pulse-record {
+            0%, 100% { box-shadow: 0 0 0 0 rgba(248, 113, 113, 0.6); }
+            50% { box-shadow: 0 0 0 12px rgba(248, 113, 113, 0); }
+        }
+
+        .record-btn:hover {
+            transform: scale(1.1);
+        }
+
         .error-message {
             background: rgba(248, 113, 113, 0.1);
             border: 1px solid rgba(248, 113, 113, 0.3);
@@ -517,6 +595,7 @@
 
         .filter-bar {
             display: flex;
+            flex-wrap: wrap;
             gap: 1rem;
             align-items: center;
             margin-bottom: 1.5rem;
@@ -806,6 +885,347 @@
         .edit-btn:hover {
             background: var(--accent-hover);
         }
+
+        .header-row {
+            display: flex;
+            justify-content: space-between;
+            align-items: flex-start;
+            margin-bottom: 0.5rem;
+        }
+
+        .settings-btn {
+            background: transparent;
+            border: 1px solid var(--border);
+            color: var(--text-secondary);
+            width: 36px;
+            height: 36px;
+            padding: 0;
+            border-radius: 8px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 1.2rem;
+            flex-shrink: 0;
+        }
+
+        .settings-btn:hover {
+            background: var(--bg-input);
+            color: var(--text-primary);
+            transform: none;
+        }
+
+        .settings-form {
+            display: flex;
+            flex-direction: column;
+            gap: 1.25rem;
+        }
+
+        .settings-form .form-group select {
+            background: var(--bg-input);
+            border: 1px solid var(--border);
+            border-radius: 8px;
+            padding: 0.75rem;
+            color: var(--text-primary);
+            font-size: 0.95rem;
+            font-family: 'Outfit', sans-serif;
+        }
+
+        .settings-form .form-group select:focus {
+            outline: none;
+            border-color: var(--accent);
+        }
+
+        .model-cards {
+            display: flex;
+            flex-direction: column;
+            gap: 0.5rem;
+        }
+
+        .model-card {
+            background: var(--bg-input);
+            border: 2px solid var(--border);
+            border-radius: 10px;
+            padding: 0.75rem 1rem;
+            cursor: pointer;
+            transition: all 0.15s;
+            text-align: left;
+        }
+
+        .model-card:hover {
+            border-color: var(--text-secondary);
+        }
+
+        .model-card.selected {
+            border-color: var(--accent);
+            background: rgba(99, 102, 241, 0.08);
+        }
+
+        .model-card-name {
+            font-weight: 600;
+            font-size: 0.9rem;
+            color: var(--text-primary);
+        }
+
+        .model-card-desc {
+            font-size: 0.78rem;
+            color: var(--text-secondary);
+            margin-top: 0.15rem;
+        }
+
+        .backend-toggle {
+            display: flex;
+            gap: 0.5rem;
+        }
+
+        .backend-toggle button {
+            flex: 1;
+            padding: 0.75rem;
+        }
+
+        .backend-toggle button.active {
+            background: var(--accent);
+            color: white;
+        }
+
+        .test-result {
+            padding: 0.5rem 0.75rem;
+            border-radius: 6px;
+            font-size: 0.85rem;
+            margin-top: 0.5rem;
+        }
+
+        .test-result.success {
+            background: rgba(74, 222, 128, 0.1);
+            border: 1px solid rgba(74, 222, 128, 0.3);
+            color: var(--success);
+        }
+
+        .test-result.failure {
+            background: rgba(248, 113, 113, 0.1);
+            border: 1px solid rgba(248, 113, 113, 0.3);
+            color: var(--error);
+        }
+
+        .health-status.cloud {
+            background: rgba(74, 158, 255, 0.1);
+            border: 1px solid rgba(74, 158, 255, 0.3);
+            color: var(--accent);
+        }
+
+        .health-status.downloading {
+            background: rgba(251, 191, 36, 0.1);
+            border: 1px solid rgba(251, 191, 36, 0.3);
+            color: var(--warning);
+        }
+
+        .setup-overlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: rgba(0, 0, 0, 0.9);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            z-index: 2000;
+            padding: 2rem;
+        }
+
+        .setup-card {
+            background: var(--bg-card);
+            border: 1px solid var(--border);
+            border-radius: 16px;
+            max-width: 540px;
+            width: 100%;
+            padding: 2.5rem;
+        }
+
+        .setup-title {
+            font-size: 1.6rem;
+            font-weight: 600;
+            margin-bottom: 0.5rem;
+            background: linear-gradient(135deg, var(--accent), var(--success));
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+        }
+
+        .setup-subtitle {
+            color: var(--text-secondary);
+            margin-bottom: 2rem;
+            font-size: 0.95rem;
+        }
+
+        .setup-option {
+            background: var(--bg-input);
+            border: 2px solid var(--border);
+            border-radius: 12px;
+            padding: 1.25rem;
+            margin-bottom: 1rem;
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+
+        .setup-option:hover {
+            border-color: var(--accent);
+        }
+
+        .setup-option.selected {
+            border-color: var(--accent);
+            background: rgba(74, 158, 255, 0.08);
+        }
+
+        .setup-option-title {
+            font-size: 1rem;
+            font-weight: 600;
+            color: var(--text-primary);
+            margin-bottom: 0.25rem;
+        }
+
+        .setup-option-desc {
+            font-size: 0.85rem;
+            color: var(--text-secondary);
+        }
+
+        .setup-actions {
+            margin-top: 1.5rem;
+            display: flex;
+            justify-content: flex-end;
+        }
+
+        .download-progress {
+            background: var(--bg-input);
+            border: 1px solid var(--border);
+            border-radius: 8px;
+            padding: 1rem;
+            margin-top: 1rem;
+            font-size: 0.9rem;
+            color: var(--text-secondary);
+            display: flex;
+            flex-direction: column;
+            gap: 0.75rem;
+        }
+
+        .download-progress .download-label {
+            display: flex;
+            align-items: center;
+            gap: 0.75rem;
+        }
+
+        .download-progress .progress-bar-track {
+            width: 100%;
+            height: 6px;
+            background: var(--border);
+            border-radius: 3px;
+            overflow: hidden;
+        }
+
+        .download-progress .progress-bar-fill {
+            height: 100%;
+            border-radius: 3px;
+            background: linear-gradient(90deg, var(--accent), #818cf8);
+            animation: progress-indeterminate 1.8s ease-in-out infinite;
+            width: 40%;
+        }
+
+        @keyframes progress-indeterminate {
+            0% { transform: translateX(-100%); }
+            100% { transform: translateX(350%); }
+        }
+
+        .download-progress.complete {
+            border-color: rgba(74, 222, 128, 0.3);
+            color: var(--success);
+            flex-direction: row;
+            align-items: center;
+        }
+
+        .download-progress.error {
+            border-color: rgba(248, 113, 113, 0.3);
+            color: var(--error);
+            flex-direction: row;
+            align-items: center;
+        }
+
+        .toast {
+            position: fixed;
+            bottom: 2rem;
+            left: 50%;
+            transform: translateX(-50%);
+            background: var(--bg-card);
+            border: 1px solid var(--border);
+            padding: 0.75rem 1.5rem;
+            border-radius: 8px;
+            font-size: 0.9rem;
+            z-index: 3000;
+            animation: fadeIn 0.2s;
+        }
+
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateX(-50%) translateY(10px); }
+            to { opacity: 1; transform: translateX(-50%) translateY(0); }
+        }
+
+        .kbd {
+            display: inline-block;
+            background: var(--bg-input);
+            border: 1px solid var(--border);
+            border-radius: 4px;
+            padding: 0.15rem 0.4rem;
+            font-size: 0.78rem;
+            font-family: 'JetBrains Mono', monospace;
+            color: var(--text-secondary);
+            line-height: 1.4;
+        }
+
+        .shortcuts-table {
+            width: 100%;
+            border-collapse: collapse;
+        }
+
+        .shortcuts-table td {
+            padding: 0.5rem 0.75rem;
+            border-bottom: 1px solid var(--border);
+            font-size: 0.9rem;
+        }
+
+        .shortcuts-table tr:last-child td {
+            border-bottom: none;
+        }
+
+        .shortcuts-table td:first-child {
+            white-space: nowrap;
+            text-align: right;
+            width: 40%;
+        }
+
+        .getting-started-steps {
+            text-align: left;
+            display: inline-block;
+            margin: 1.5rem 0;
+        }
+
+        .getting-started-steps li {
+            margin-bottom: 0.75rem;
+            font-size: 1rem;
+            color: var(--text-primary);
+            line-height: 1.6;
+        }
+
+        .getting-started-steps li span.step-num {
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            width: 1.6rem;
+            height: 1.6rem;
+            border-radius: 50%;
+            background: var(--accent);
+            color: white;
+            font-size: 0.8rem;
+            font-weight: 600;
+            margin-right: 0.75rem;
+        }
     </style>
 </head>
 <body>
@@ -813,6 +1233,20 @@
 
     <script type="text/babel">
         const { useState, useEffect, useRef } = React;
+
+        const SHORTCUTS = [
+            { keys: '\u2318\u21E7R', desc: 'Record / stop recording' },
+            { keys: '\u2318\u21A9', desc: 'Parse transcription' },
+            { keys: '\u2318\u232B', desc: 'Clear transcription' },
+            { keys: '\u2318,', desc: 'Open / close Settings' },
+            { keys: '\u2318F', desc: 'Focus search' },
+            { keys: 'Esc', desc: 'Close topmost modal' },
+            { keys: '\u23181 / \u23182 / \u23183', desc: 'Filter: All / Correct / Incorrect' },
+            { keys: '\u2318\u21E7E', desc: 'Toggle export menu' },
+            { keys: '\u2318J', desc: 'Scroll to latest entry' },
+            { keys: '\u2318Z', desc: 'Undo last parse' },
+            { keys: '? or \u2318/', desc: 'Show keyboard shortcuts' },
+        ];
 
         function App() {
             const [health, setHealth] = useState({ status: 'loading' });
@@ -822,14 +1256,93 @@
             const [entries, setEntries] = useState([]);
             const [parsing, setParsing] = useState(false);
             const [error, setError] = useState(null);
+            const [debugLog, setDebugLog] = useState([]);
+            const [showDebug, setShowDebug] = useState(false);
             const [expandedCells, setExpandedCells] = useState(new Set());
             const [filter, setFilter] = useState('all'); // 'all', 'correct', 'incorrect'
-            const [collapsedSections, setCollapsedSections] = useState(new Set());
+            const [collapsedSections, setCollapsedSections] = useState(() => {
+                try {
+                    const saved = localStorage.getItem('collapsedSections');
+                    return saved ? new Set(JSON.parse(saved)) : new Set();
+                } catch { return new Set(); }
+            });
             const [editingEntry, setEditingEntry] = useState(null);
             const [showingFront, setShowingFront] = useState(true);
+            const [recording, setRecording] = useState(false); // idle, recording
+            const [transcribing, setTranscribing] = useState(false);
+            const [showSettings, setShowSettings] = useState(false);
+            const [settings, setSettings] = useState(null);
+            const [settingsForm, setSettingsForm] = useState(null);
+            const [testingConnection, setTestingConnection] = useState(false);
+            const [testResult, setTestResult] = useState(null);
+            const [showAdvanced, setShowAdvanced] = useState(false);
+            const [showSetup, setShowSetup] = useState(false);
+            const [setupStep, setSetupStep] = useState('choose');
+            const [setupBackend, setSetupBackend] = useState('cloud');
+            const [setupApiKey, setSetupApiKey] = useState('');
+            const [setupModel, setSetupModel] = useState('claude-sonnet-4-5-20250929');
+            const [setupTestResult, setSetupTestResult] = useState(null);
+            const [setupTesting, setSetupTesting] = useState(false);
+            const [downloadStatus, setDownloadStatus] = useState(null);
+            const [searchQuery, setSearchQuery] = useState('');
+            const [toast, setToast] = useState(null);
+            const [lastParse, setLastParse] = useState(null);
+            const [showShortcuts, setShowShortcuts] = useState(false);
+            const [showExportMenu, setShowExportMenu] = useState(false);
+            const [exportSections, setExportSections] = useState(new Set());
             const textareaRef = useRef(null);
             const tableEndRef = useRef(null);
+            const searchRef = useRef(null);
+            const exportMenuRef = useRef(null);
             const isInitialMount = useRef(true);
+            const toastTimeoutRef = useRef(null);
+
+            // Refs for keyboard handler to avoid stale closures
+            const filterRef = useRef(filter);
+            const lastParseRef = useRef(lastParse);
+            const editingEntryRef = useRef(editingEntry);
+            const showSettingsRef = useRef(showSettings);
+            const showShortcutsRef = useRef(showShortcuts);
+            const showSetupRef = useRef(showSetup);
+            const showExportMenuRef = useRef(showExportMenu);
+            useEffect(() => {
+                filterRef.current = filter;
+                lastParseRef.current = lastParse;
+                editingEntryRef.current = editingEntry;
+                showSettingsRef.current = showSettings;
+                showShortcutsRef.current = showShortcuts;
+                showSetupRef.current = showSetup;
+                showExportMenuRef.current = showExportMenu;
+            }, [filter, lastParse, editingEntry, showSettings, showShortcuts, showSetup, showExportMenu]);
+
+            function showToast(message) {
+                if (toastTimeoutRef.current) clearTimeout(toastTimeoutRef.current);
+                setToast(message);
+                toastTimeoutRef.current = setTimeout(() => setToast(null), 2000);
+            }
+
+            function renderLocalModelFields() {
+                return (
+                    <>
+                        <div className="form-group">
+                            <label>LLM Repo ID</label>
+                            <input type="text" value={settingsForm.llm_repo_id || ''} onChange={e => setSettingsForm(prev => ({ ...prev, llm_repo_id: e.target.value }))} />
+                        </div>
+                        <div className="form-group">
+                            <label>LLM Filename</label>
+                            <input type="text" value={settingsForm.llm_filename || ''} onChange={e => setSettingsForm(prev => ({ ...prev, llm_filename: e.target.value }))} />
+                        </div>
+                        <div className="form-group">
+                            <label>Context Size</label>
+                            <input type="number" value={settingsForm.llm_context_size || ''} onChange={e => setSettingsForm(prev => ({ ...prev, llm_context_size: parseInt(e.target.value) || '' }))} />
+                        </div>
+                        <div className="form-group">
+                            <label>STT Model</label>
+                            <input type="text" value={settingsForm.stt_model_id || ''} onChange={e => setSettingsForm(prev => ({ ...prev, stt_model_id: e.target.value }))} />
+                        </div>
+                    </>
+                );
+            }
 
             // Convert bullet points and formatting to HTML
             function formatContent(text) {
@@ -893,9 +1406,62 @@
             }
 
             useEffect(() => {
-                checkHealth();
-                loadEntries();
+                async function init() {
+                    const healthData = await checkHealth();
+                    loadEntries();
+                    try {
+                        const res = await fetch('/api/config');
+                        const config = await res.json();
+                        if (!config.setup_complete) {
+                            if (healthData && healthData.status === 'ok') {
+                                // Existing user upgrading — silently mark complete
+                                await fetch('/api/config', {
+                                    method: 'POST',
+                                    headers: { 'Content-Type': 'application/json' },
+                                    body: JSON.stringify({ setup_complete: true })
+                                });
+                            } else {
+                                setShowSetup(true);
+                            }
+                        }
+                    } catch (err) {
+                        console.error('Failed to check setup status:', err);
+                    }
+                }
+                init();
             }, []);
+
+            // Auto-focus textarea on mount
+            useEffect(() => {
+                textareaRef.current?.focus();
+            }, []);
+
+            // Health polling: poll every 3s while setup is open or health is downloading
+            useEffect(() => {
+                if (!showSetup && health.status !== 'downloading') return;
+                const interval = setInterval(() => {
+                    checkHealth();
+                }, 3000);
+                return () => clearInterval(interval);
+            }, [showSetup, health.status]);
+
+            // Close export menu on click outside
+            useEffect(() => {
+                if (!showExportMenu) return;
+                function handleClickOutside(e) {
+                    if (exportMenuRef.current && !exportMenuRef.current.contains(e.target)) {
+                        setShowExportMenu(false);
+                    }
+                }
+                document.addEventListener('mousedown', handleClickOutside);
+                return () => document.removeEventListener('mousedown', handleClickOutside);
+            }, [showExportMenu]);
+
+            // Initialize exportSections when entries change
+            useEffect(() => {
+                const allSections = new Set(entries.map(e => e.section || 'Uncategorized'));
+                setExportSections(allSections);
+            }, [entries.length]);
 
             useEffect(() => {
                 localStorage.setItem('section', section);
@@ -917,16 +1483,20 @@
                 saveEntries(entries);
             }, [entries]);
 
+            useEffect(() => {
+                localStorage.setItem('collapsedSections', JSON.stringify([...collapsedSections]));
+            }, [collapsedSections]);
+
             async function checkHealth() {
                 try {
                     const res = await fetch('/api/health');
                     const data = await res.json();
                     setHealth(data);
+                    return data;
                 } catch (err) {
-                    setHealth({
-                        status: 'error',
-                        message: 'Could not connect to server'
-                    });
+                    const errData = { status: 'error', message: 'Could not connect to server' };
+                    setHealth(errData);
+                    return errData;
                 }
             }
 
@@ -989,6 +1559,12 @@
                         throw new Error(JSON.stringify(fullError));
                     }
 
+                    // Capture debug info
+                    if (data._debug) {
+                        setDebugLog(prev => [...prev, { ...data._debug, timestamp: new Date().toLocaleTimeString() }]);
+                        delete data._debug;
+                    }
+
                     // Auto-increment question number if not provided
                     if (!data.number || data.number === null) {
                         // Find the last entry's number
@@ -997,15 +1573,18 @@
                         data.number = lastNumber + 1;
                     }
 
-                    // Add entry with ID and timestamp
+                    // Add entry with ID and timestamp, apply default result
                     const newEntry = {
                         ...data,
+                        result: settings?.default_result || data.result || 'incorrect',
                         id: Date.now(),
                         timestamp: new Date().toISOString(),
                         isNew: true
                     };
 
+                    const savedTranscription = transcription;
                     setEntries(prev => [...prev, newEntry]);
+                    setLastParse({ entry: newEntry, transcription: savedTranscription });
                     setTranscription('');
                     textareaRef.current?.focus();
 
@@ -1035,8 +1614,300 @@
                 }
             }
 
+            // Global keyboard shortcuts
+            useEffect(() => {
+                function handleGlobalKeyDown(e) {
+                    const tag = document.activeElement?.tagName;
+                    const inInput = tag === 'INPUT' || tag === 'TEXTAREA';
+
+                    // Cmd+Shift+R — toggle recording
+                    if (e.metaKey && e.shiftKey && e.key === 'r') {
+                        e.preventDefault();
+                        if (!parsing && !transcribing) toggleRecording();
+                        return;
+                    }
+                    // Cmd+Shift+E — toggle export menu
+                    if (e.metaKey && e.shiftKey && (e.key === 'e' || e.key === 'E')) {
+                        e.preventDefault();
+                        setShowExportMenu(prev => !prev);
+                        return;
+                    }
+                    // Cmd+Enter — parse
+                    if (e.metaKey && e.key === 'Enter') {
+                        e.preventDefault();
+                        handleParse();
+                        return;
+                    }
+                    // Cmd+Backspace — clear textarea
+                    if (e.metaKey && e.key === 'Backspace') {
+                        e.preventDefault();
+                        setTranscription('');
+                        textareaRef.current?.focus();
+                        return;
+                    }
+                    // Cmd+, — toggle settings
+                    if (e.metaKey && e.key === ',') {
+                        e.preventDefault();
+                        if (showSettingsRef.current) {
+                            setShowSettings(false);
+                        } else {
+                            openSettings();
+                        }
+                        return;
+                    }
+                    // Cmd+F — focus search
+                    if (e.metaKey && !e.shiftKey && e.key === 'f') {
+                        e.preventDefault();
+                        searchRef.current?.focus();
+                        return;
+                    }
+                    // Cmd+1/2/3 — switch filter
+                    if (e.metaKey && !e.shiftKey && (e.key === '1' || e.key === '2' || e.key === '3')) {
+                        e.preventDefault();
+                        const filters = { '1': 'all', '2': 'correct', '3': 'incorrect' };
+                        setFilter(filters[e.key]);
+                        return;
+                    }
+                    // Cmd+J — scroll to latest entry
+                    if (e.metaKey && !e.shiftKey && e.key === 'j') {
+                        e.preventDefault();
+                        tableEndRef.current?.scrollIntoView({ behavior: 'smooth' });
+                        return;
+                    }
+                    // Cmd+Z — undo last parse (only when not in text input)
+                    if (e.metaKey && !e.shiftKey && e.key === 'z' && !inInput) {
+                        e.preventDefault();
+                        undoLastParse();
+                        return;
+                    }
+                    // Cmd+/ or ? — show shortcuts
+                    if (e.metaKey && e.key === '/') {
+                        e.preventDefault();
+                        setShowShortcuts(prev => !prev);
+                        return;
+                    }
+                    // ? key (when not in input) — show shortcuts
+                    if (e.key === '?' && !inInput) {
+                        e.preventDefault();
+                        setShowShortcuts(prev => !prev);
+                        return;
+                    }
+                    // Escape — close topmost modal
+                    if (e.key === 'Escape') {
+                        if (showExportMenuRef.current) { setShowExportMenu(false); return; }
+                        if (editingEntryRef.current) { setEditingEntry(null); return; }
+                        if (showSettingsRef.current) { setShowSettings(false); return; }
+                        if (showShortcutsRef.current) { setShowShortcuts(false); return; }
+                        if (showSetupRef.current) { /* don't close setup with Escape */ return; }
+                    }
+                }
+                window.addEventListener('keydown', handleGlobalKeyDown);
+                return () => window.removeEventListener('keydown', handleGlobalKeyDown);
+            }, [transcription, parsing, recording, transcribing]);
+
+            async function toggleRecording() {
+                if (recording) {
+                    // Stop recording and transcribe
+                    setRecording(false);
+                    setTranscribing(true);
+                    try {
+                        const res = await fetch('/api/record/stop', { method: 'POST' });
+                        const data = await res.json();
+                        if (!res.ok) throw new Error(data.error || 'Stop recording failed');
+                        setTranscription(prev => prev ? prev + ' ' + data.text : data.text);
+                    } catch (err) {
+                        setError(JSON.stringify({ message: 'Recording failed', details: err.message }));
+                    } finally {
+                        setTranscribing(false);
+                    }
+                } else {
+                    // Start recording
+                    setError(null);
+                    try {
+                        const res = await fetch('/api/record/start', { method: 'POST' });
+                        const data = await res.json();
+                        if (!res.ok) throw new Error(data.error || 'Start recording failed');
+                        setRecording(true);
+                    } catch (err) {
+                        setError(JSON.stringify({ message: 'Could not start recording', details: err.message }));
+                    }
+                }
+            }
+
+            async function openSettings() {
+                try {
+                    const res = await fetch('/api/config');
+                    const data = await res.json();
+                    setSettings(data);
+                    setSettingsForm({ ...data, api_key: '' }); // Don't prefill masked key
+                    setTestResult(null);
+                    setShowSettings(true);
+                } catch (err) {
+                    console.error('Failed to load settings:', err);
+                }
+            }
+
+            async function saveSettings() {
+                try {
+                    const payload = { ...settingsForm };
+                    // Only send api_key if user typed a new one
+                    if (!payload.api_key) {
+                        delete payload.api_key;
+                    }
+                    const res = await fetch('/api/config', {
+                        method: 'POST',
+                        headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify(payload)
+                    });
+                    const data = await res.json();
+                    if (!res.ok) throw new Error(data.error || 'Failed to save');
+                    setSettings(data);
+                    setShowSettings(false);
+                    checkHealth(); // Refresh health status
+                } catch (err) {
+                    console.error('Failed to save settings:', err);
+                    setTestResult({ ok: false, message: 'Failed to save: ' + err.message });
+                }
+            }
+
+            async function testConnection() {
+                setTestingConnection(true);
+                setTestResult(null);
+                try {
+                    // Save settings first (including API key)
+                    const payload = { ...settingsForm };
+                    if (!payload.api_key) {
+                        delete payload.api_key;
+                    }
+                    await fetch('/api/config', {
+                        method: 'POST',
+                        headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify(payload)
+                    });
+                    // Then test by parsing a simple transcription
+                    const res = await fetch('/api/parse', {
+                        method: 'POST',
+                        headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify({
+                            transcription: 'Question 1 was correct. The answer is the femur because it is the longest bone in the body.',
+                            section: 'Test'
+                        })
+                    });
+                    const data = await res.json();
+                    if (res.ok && data.front) {
+                        setTestResult({ ok: true, message: 'Connection successful! Parsed test transcription.' });
+                    } else {
+                        setTestResult({ ok: false, message: data.error || 'Parse failed' });
+                    }
+                } catch (err) {
+                    setTestResult({ ok: false, message: 'Connection failed: ' + err.message });
+                } finally {
+                    setTestingConnection(false);
+                }
+            }
+
+            async function setupTestConnection() {
+                setSetupTesting(true);
+                setSetupTestResult(null);
+                try {
+                    // Save API key + cloud backend temporarily
+                    const payload = { parsing_backend: 'cloud', cloud_model: setupModel };
+                    if (setupApiKey) payload.api_key = setupApiKey;
+                    await fetch('/api/config', {
+                        method: 'POST',
+                        headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify(payload)
+                    });
+                    // Test by parsing a simple transcription
+                    const res = await fetch('/api/parse', {
+                        method: 'POST',
+                        headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify({
+                            transcription: 'Question 1 was correct. The answer is the femur because it is the longest bone in the body.',
+                            section: 'Test'
+                        })
+                    });
+                    const data = await res.json();
+                    if (res.ok && data.front) {
+                        setSetupTestResult({ ok: true, message: 'Connection successful!' });
+                    } else {
+                        setSetupTestResult({ ok: false, message: data.error || 'Parse failed' });
+                    }
+                } catch (err) {
+                    setSetupTestResult({ ok: false, message: 'Connection failed: ' + err.message });
+                } finally {
+                    setSetupTesting(false);
+                }
+            }
+
+            async function setupStartDownload() {
+                setDownloadStatus('downloading');
+                try {
+                    await fetch('/api/models/download', { method: 'POST' });
+                    // Polling for status is handled by the health polling interval
+                    // Also poll model status specifically
+                    const pollModels = setInterval(async () => {
+                        try {
+                            const res = await fetch('/api/models/status');
+                            const data = await res.json();
+                            if (data.llm === 'ready') {
+                                setDownloadStatus('ready');
+                                clearInterval(pollModels);
+                            } else if (data.llm === 'error') {
+                                setDownloadStatus('error');
+                                clearInterval(pollModels);
+                            }
+                        } catch (e) {
+                            // ignore polling errors
+                        }
+                    }, 3000);
+                } catch (err) {
+                    setDownloadStatus('error');
+                }
+            }
+
+            async function setupDeleteModel() {
+                try {
+                    await fetch('/api/models/delete', { method: 'POST' });
+                    setDownloadStatus(null);
+                    checkHealth();
+                } catch (err) {
+                    console.error('Failed to delete model:', err);
+                }
+            }
+
+            async function completeSetup() {
+                try {
+                    const payload = {
+                        setup_complete: true,
+                        parsing_backend: setupBackend,
+                    };
+                    if (setupBackend === 'cloud') {
+                        if (setupApiKey) payload.api_key = setupApiKey;
+                        payload.cloud_model = setupModel;
+                    }
+                    await fetch('/api/config', {
+                        method: 'POST',
+                        headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify(payload)
+                    });
+                    await checkHealth();
+                    setShowSetup(false);
+                    // Reset setup state
+                    setSetupStep('choose');
+                    setSetupApiKey('');
+                    setSetupTestResult(null);
+                    setDownloadStatus(null);
+                } catch (err) {
+                    console.error('Failed to complete setup:', err);
+                }
+            }
+
             function deleteEntry(id) {
-                setEntries(prev => prev.filter(e => e.id !== id));
+                if (confirm('Delete this entry?')) {
+                    setEntries(prev => prev.filter(e => e.id !== id));
+                    if (lastParse && lastParse.entry.id === id) setLastParse(null);
+                }
             }
 
             function editEntry(entry) {
@@ -1105,51 +1976,19 @@
                 });
             }
 
-            function exportAnki(filterType = 'all') {
-                let toExport = entries;
-                if (filterType === 'correct') toExport = entries.filter(e => e.result === 'correct');
-                if (filterType === 'incorrect') toExport = entries.filter(e => e.result === 'incorrect');
-
-                if (toExport.length === 0) return;
-
-                const lines = ['front\tback\ttags'];
-                toExport.forEach(entry => {
-                    const front = (entry.front || '').replace(/\t/g, ' ').replace(/\n/g, ' ');
-                    const back = (entry.back || '').replace(/\t/g, ' ').replace(/\n/g, '<br>');
-                    const tags = (entry.tags || []).join(' ');
-                    lines.push(`${front}\t${back}\t${tags}`);
-                });
-
-                const blob = new Blob([lines.join('\n')], { type: 'text/plain' });
-                const url = URL.createObjectURL(blob);
-                const a = document.createElement('a');
-                const suffix = filterType === 'all' ? '' : `-${filterType}`;
-                a.href = url;
-                a.download = `anatomix${suffix}-${Date.now()}.txt`;
-                a.style.display = 'none';
-                document.body.appendChild(a);
-                a.click();
-                document.body.removeChild(a);
-                URL.revokeObjectURL(url);
-            }
-
-            async function exportCSV(filterType = 'all') {
-                let toExport = entries;
-                if (filterType === 'correct') toExport = entries.filter(e => e.result === 'correct');
-                if (filterType === 'incorrect') toExport = entries.filter(e => e.result === 'incorrect');
-
-                if (toExport.length === 0) {
-                    alert('No entries to export');
+            async function exportAnki(entriesToExport) {
+                if (!entriesToExport || entriesToExport.length === 0) {
+                    showToast('No entries to export');
                     return;
                 }
 
                 try {
-                    const response = await fetch('/api/export-csv', {
+                    const response = await fetch('/api/export-apkg', {
                         method: 'POST',
                         headers: { 'Content-Type': 'application/json' },
                         body: JSON.stringify({
-                            entries: toExport,
-                            filter: filterType
+                            entries: entriesToExport,
+                            filter: 'all'
                         })
                     });
 
@@ -1159,19 +1998,57 @@
                         throw new Error(result.error || 'Export failed');
                     }
 
-                    // Show success message
-                    alert(`✓ CSV exported successfully!\n\nSaved to: ${result.filename}\n\nCheck your Downloads folder.`);
-
+                    showToast(`Anki deck exported to ${result.filename}`);
                 } catch (err) {
                     console.error('Export error:', err);
-                    alert('Failed to export CSV: ' + err.message);
+                    showToast('Failed to export Anki deck: ' + err.message);
+                }
+            }
+
+            async function exportCSV(entriesToExport) {
+                if (!entriesToExport || entriesToExport.length === 0) {
+                    showToast('No entries to export');
+                    return;
+                }
+
+                try {
+                    const response = await fetch('/api/export-csv', {
+                        method: 'POST',
+                        headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify({
+                            entries: entriesToExport,
+                            filter: 'all'
+                        })
+                    });
+
+                    const result = await response.json();
+
+                    if (!response.ok) {
+                        throw new Error(result.error || 'Export failed');
+                    }
+
+                    showToast(`CSV exported to ${result.filename}`);
+                } catch (err) {
+                    console.error('Export error:', err);
+                    showToast('Failed to export CSV: ' + err.message);
                 }
             }
 
             function clearAll() {
                 if (confirm('Clear all entries? This cannot be undone.')) {
                     setEntries([]);
+                    setLastParse(null);
                 }
+            }
+
+            function undoLastParse() {
+                const lp = lastParseRef.current;
+                if (!lp) return;
+                setEntries(prev => prev.filter(e => e.id !== lp.entry.id));
+                setTranscription(lp.transcription);
+                setLastParse(null);
+                showToast('Undo: entry removed, transcription restored');
+                textareaRef.current?.focus();
             }
 
             function toggleSection(sectionName) {
@@ -1186,10 +2063,16 @@
                 });
             }
 
-            // Filter entries based on current filter
+            // Filter entries based on current filter and search query
             const filteredEntries = entries.filter(e => {
-                if (filter === 'all') return true;
-                return e.result === filter;
+                if (filter !== 'all' && e.result !== filter) return false;
+                if (searchQuery) {
+                    const q = searchQuery.toLowerCase();
+                    return (e.front || '').toLowerCase().includes(q)
+                        || (e.back || '').toLowerCase().includes(q)
+                        || (e.notes || '').toLowerCase().includes(q);
+                }
+                return true;
             });
 
             // Get unique sections for dropdown
@@ -1215,24 +2098,56 @@
                 : 0;
 
             return (
+                <div style={{ display: 'flex', height: '100vh', overflow: 'hidden' }}>
+                <div style={{ flex: 1, overflow: 'auto' }}>
                 <div className="container">
-                    <h1>Anatomix</h1>
-                    <p className="subtitle">Voice transcription → structured Anki cards</p>
+                    <div className="header-row">
+                        <div>
+                            <h1>Pereste</h1>
+                            <p className="subtitle">Voice → structured flashcards</p>
+                        </div>
+                        <div style={{ display: 'flex', gap: '0.25rem' }}>
+                            {settings?.debug_mode && (
+                            <button className="settings-btn" onClick={() => setShowDebug(prev => !prev)} title="Debug Panel" style={{ opacity: showDebug ? 1 : 0.5, fontSize: '1.1rem' }}>
+                                &#9776;
+                            </button>
+                            )}
+                            <button className="settings-btn" onClick={() => setShowShortcuts(true)} title="Keyboard Shortcuts (?)">
+                                ?
+                            </button>
+                            <button className="settings-btn" onClick={openSettings} title="Settings (\u2318,)">
+                                ⚙
+                            </button>
+                        </div>
+                    </div>
 
                     {health.status === 'loading' && (
                         <div className="health-status loading">
                             <span className="loading"></span>
-                            Checking Ollama connection...
+                            Checking connection...
                         </div>
                     )}
 
-                    {health.status === 'ok' && (
+                    {health.status === 'ok' && health.backend === 'cloud' && (
+                        <div className="health-status cloud">
+                            ✓ Cloud ({health.provider}) — {health.model}
+                        </div>
+                    )}
+
+                    {health.status === 'ok' && health.backend !== 'cloud' && (
                         <div className="health-status ok">
-                            ✓ Connected to Ollama ({health.model})
+                            ✓ Local model ({health.model})
                         </div>
                     )}
 
-                    {health.status === 'error' && (
+                    {health.status === 'downloading' && (
+                        <div className="health-status downloading">
+                            <span className="loading"></span>
+                            Downloading model ({health.model})...
+                        </div>
+                    )}
+
+                    {health.status === 'error' && !showSetup && (
                         <div className="health-status error">
                             ✗ {health.message}
                         </div>
@@ -1266,23 +2181,45 @@
                     </div>
 
                     <div className="input-zone">
-                        <label>Paste Super Whisper Transcription</label>
+                        <label>Record or Paste Transcription</label>
                         <textarea
                             ref={textareaRef}
                             value={transcription}
                             onChange={e => setTranscription(e.target.value)}
                             onKeyDown={handleKeyDown}
-                            placeholder="Paste your voice transcription here..."
-                            disabled={parsing || health.status !== 'ok'}
+                            placeholder={recording ? 'Recording... click mic to stop' : 'Paste your transcription here...'}
+                            disabled={parsing || recording || transcribing}
                         />
                         <div className="input-actions">
-                            <span className="shortcut-hint">Enter to parse</span>
-                            <button
-                                onClick={handleParse}
-                                disabled={!transcription.trim() || parsing || health.status !== 'ok'}
-                            >
-                                {parsing ? <><span className="loading"></span> Parsing...</> : 'Parse Question'}
-                            </button>
+                            <span className="shortcut-hint">{recording ? 'Recording...' : '\u2318\u21E7R record \u00B7 \u2318\u21A9 parse \u00B7 \u2318\u232B clear'}</span>
+                            <div style={{ display: 'flex', gap: '0.5rem' }}>
+                                <button
+                                    onClick={toggleRecording}
+                                    disabled={parsing || transcribing}
+                                    className={recording ? '' : 'secondary'}
+                                    style={{
+                                        display: 'inline-flex',
+                                        alignItems: 'center',
+                                        gap: '0.4rem',
+                                        background: recording ? 'var(--error)' : undefined,
+                                        animation: recording ? 'pulse-record 1.5s ease-in-out infinite' : 'none',
+                                    }}
+                                >
+                                    {transcribing ? (
+                                        <><span className="loading"></span> Transcribing...</>
+                                    ) : recording ? (
+                                        <><svg width="14" height="14" viewBox="0 0 16 16" fill="currentColor" style={{ flexShrink: 0 }}><rect x="3" y="3" width="10" height="10" rx="2"/></svg> Stop</>
+                                    ) : (
+                                        <><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round" style={{ flexShrink: 0 }}><rect x="9" y="1" width="6" height="12" rx="3"/><path d="M5 10a7 7 0 0 0 14 0"/><line x1="12" y1="17" x2="12" y2="21"/><line x1="8" y1="21" x2="16" y2="21"/></svg> Record</>
+                                    )}
+                                </button>
+                                <button
+                                    onClick={handleParse}
+                                    disabled={!transcription.trim() || parsing || recording || transcribing}
+                                >
+                                    {parsing ? <><span className="loading"></span> Parsing...</> : 'Parse Question'}
+                                </button>
+                            </div>
                         </div>
                         {error && (
                             <div className="error-message">
@@ -1295,7 +2232,7 @@
                                                 {errorObj.details && <div style={{ marginTop: '0.5rem', fontSize: '0.85rem' }}><strong>Details:</strong> {errorObj.details}</div>}
                                                 {errorObj.raw_response && (
                                                     <details style={{ marginTop: '0.5rem', fontSize: '0.85rem' }}>
-                                                        <summary style={{ cursor: 'pointer' }}>Show raw Ollama response</summary>
+                                                        <summary style={{ cursor: 'pointer' }}>Show raw response</summary>
                                                         <pre style={{ marginTop: '0.5rem', padding: '0.5rem', background: 'var(--bg-input)', borderRadius: '4px', overflow: 'auto', maxHeight: '200px' }}>
                                                             {errorObj.raw_response}
                                                         </pre>
@@ -1309,6 +2246,7 @@
                                 })()}
                             </div>
                         )}
+
                     </div>
 
                     {entries.length > 0 && (
@@ -1353,10 +2291,90 @@
                                         Incorrect ({stats.incorrect})
                                     </button>
                                 </div>
-                                <div className="export-actions">
-                                    <button onClick={() => exportCSV(filter)}>Export CSV</button>
-                                    <button onClick={() => exportCSV('incorrect')} className="secondary">Incorrect CSV</button>
-                                    <button onClick={clearAll} className="secondary danger">Clear All</button>
+                                <input
+                                    ref={searchRef}
+                                    type="text"
+                                    placeholder="Search entries..."
+                                    value={searchQuery}
+                                    onChange={e => setSearchQuery(e.target.value)}
+                                    style={{
+                                        background: 'var(--bg-input)',
+                                        border: '1px solid var(--border)',
+                                        borderRadius: '8px',
+                                        padding: '0.5rem 0.75rem',
+                                        color: 'var(--text-primary)',
+                                        fontSize: '0.9rem',
+                                        fontFamily: "'Outfit', sans-serif",
+                                        width: '200px',
+                                    }}
+                                />
+                                <div style={{ position: 'relative' }} ref={exportMenuRef}>
+                                    <button
+                                        className="secondary"
+                                        onClick={() => setShowExportMenu(prev => !prev)}
+                                        style={{ whiteSpace: 'nowrap' }}
+                                    >
+                                        Export
+                                    </button>
+                                    {showExportMenu && (() => {
+                                        const sectionNames = Object.keys(groupedEntries);
+                                        const allSelected = sectionNames.length > 0 && sectionNames.every(s => exportSections.has(s));
+                                        const getExportEntries = () => {
+                                            return filteredEntries.filter(e => {
+                                                const sec = e.section || 'Uncategorized';
+                                                return exportSections.has(sec);
+                                            });
+                                        };
+                                        const exportCount = getExportEntries().length;
+                                        return (
+                                            <div className="export-popup">
+                                                <div style={{ fontWeight: 600, fontSize: '0.85rem', color: 'var(--text-secondary)', textTransform: 'uppercase', letterSpacing: '0.05em', marginBottom: '0.5rem' }}>Sections</div>
+                                                <button
+                                                    className="export-popup-toggle"
+                                                    onClick={() => {
+                                                        if (allSelected) {
+                                                            setExportSections(new Set());
+                                                        } else {
+                                                            setExportSections(new Set(sectionNames));
+                                                        }
+                                                    }}
+                                                >
+                                                    {allSelected ? 'Select None' : 'Select All'}
+                                                </button>
+                                                <div className="export-popup-sections">
+                                                    {sectionNames.map(sec => (
+                                                        <label key={sec} className="export-popup-section-item">
+                                                            <input
+                                                                type="checkbox"
+                                                                checked={exportSections.has(sec)}
+                                                                onChange={() => {
+                                                                    setExportSections(prev => {
+                                                                        const next = new Set(prev);
+                                                                        if (next.has(sec)) next.delete(sec);
+                                                                        else next.add(sec);
+                                                                        return next;
+                                                                    });
+                                                                }}
+                                                            />
+                                                            {sec}
+                                                        </label>
+                                                    ))}
+                                                </div>
+                                                <hr className="export-popup-divider" />
+                                                <div style={{ fontSize: '0.8rem', color: 'var(--text-secondary)', marginBottom: '0.5rem' }}>
+                                                    {exportCount} {exportCount === 1 ? 'entry' : 'entries'} selected
+                                                </div>
+                                                <div className="export-popup-actions">
+                                                    <button onClick={() => { exportAnki(getExportEntries()); setShowExportMenu(false); }} disabled={exportCount === 0}>
+                                                        Export Anki (.apkg)
+                                                    </button>
+                                                    <button className="secondary" onClick={() => { exportCSV(getExportEntries()); setShowExportMenu(false); }} disabled={exportCount === 0}>
+                                                        Export CSV
+                                                    </button>
+                                                </div>
+                                            </div>
+                                        );
+                                    })()}
                                 </div>
                             </div>
 
@@ -1474,12 +2492,348 @@
                         </>
                     )}
 
-                    {entries.length === 0 && health.status === 'ok' && (
+                    {entries.length === 0 && (
                         <div className="empty-state">
                             <div className="empty-state-icon">📝</div>
-                            <div className="empty-state-title">No questions parsed yet</div>
-                            <div className="empty-state-text">
-                                Paste a Super Whisper transcription above and hit Enter to get started
+                            {health.status === 'ok' && (
+                                <>
+                                    <div className="empty-state-title">Get started in 3 steps</div>
+                                    <ol className="getting-started-steps">
+                                        <li><span className="step-num">1</span> Enter a section name above (e.g. Upper Limb)</li>
+                                        <li><span className="step-num">2</span> Record (<span className="kbd">{'\u2318\u21E7R'}</span>) or paste your transcription</li>
+                                        <li><span className="step-num">3</span> Press <span className="kbd">Enter</span> to parse</li>
+                                    </ol>
+                                    <div className="empty-state-text">
+                                        Press <span className="kbd">?</span> to see all keyboard shortcuts
+                                    </div>
+                                </>
+                            )}
+                            {health.status === 'downloading' && (
+                                <>
+                                    <div className="empty-state-title">Model downloading...</div>
+                                    <div className="empty-state-text">
+                                        You can start once the download is complete.
+                                    </div>
+                                </>
+                            )}
+                            {health.status === 'error' && !showSetup && (
+                                <>
+                                    <div className="empty-state-title">Setup needed</div>
+                                    <div className="empty-state-text">
+                                        Open Settings to configure your parsing backend.
+                                    </div>
+                                </>
+                            )}
+                        </div>
+                    )}
+
+                    {showSetup && (
+                        <div className="setup-overlay">
+                            <div className="setup-card">
+                                {setupStep === 'choose' && (
+                                    <>
+                                        <div className="setup-title">Welcome to Pereste</div>
+                                        <div className="setup-subtitle">Choose how you'd like to parse your transcriptions.</div>
+                                        <div
+                                            className={`setup-option ${setupBackend === 'cloud' ? 'selected' : ''}`}
+                                            onClick={() => setSetupBackend('cloud')}
+                                        >
+                                            <div className="setup-option-title">Cloud (recommended)</div>
+                                            <div className="setup-option-desc">Use Anthropic API. Requires API key, no download needed.</div>
+                                        </div>
+                                        <div
+                                            className={`setup-option ${setupBackend === 'local' ? 'selected' : ''}`}
+                                            onClick={() => setSetupBackend('local')}
+                                        >
+                                            <div className="setup-option-title">Local</div>
+                                            <div className="setup-option-desc">Run models on your Mac. Downloads ~2.5GB model.</div>
+                                        </div>
+                                        <div className="setup-actions">
+                                            <button onClick={() => setSetupStep('configure')}>Next</button>
+                                        </div>
+                                    </>
+                                )}
+
+                                {setupStep === 'configure' && setupBackend === 'cloud' && (
+                                    <>
+                                        <div className="setup-title">Configure Cloud Backend</div>
+                                        <div className="setup-subtitle">Enter your Anthropic API key to get started.</div>
+                                        <div className="settings-form">
+                                            <div className="form-group">
+                                                <label>API Key</label>
+                                                <input
+                                                    type="password"
+                                                    placeholder="sk-ant-..."
+                                                    value={setupApiKey}
+                                                    onChange={e => setSetupApiKey(e.target.value)}
+                                                />
+                                            </div>
+                                            <div className="form-group">
+                                                <label>Model</label>
+                                                <div className="model-cards">
+                                                    <div
+                                                        className={`model-card ${setupModel === 'claude-sonnet-4-5-20250929' ? 'selected' : ''}`}
+                                                        onClick={() => setSetupModel('claude-sonnet-4-5-20250929')}
+                                                    >
+                                                        <div className="model-card-name">Claude Sonnet 4.5</div>
+                                                        <div className="model-card-desc">Best balance of speed and quality</div>
+                                                    </div>
+                                                    <div
+                                                        className={`model-card ${setupModel === 'claude-haiku-4-5-20251001' ? 'selected' : ''}`}
+                                                        onClick={() => setSetupModel('claude-haiku-4-5-20251001')}
+                                                    >
+                                                        <div className="model-card-name">Claude Haiku 4.5</div>
+                                                        <div className="model-card-desc">Fastest and most affordable</div>
+                                                    </div>
+                                                </div>
+                                            </div>
+                                            <div className="form-group">
+                                                <button
+                                                    className="secondary"
+                                                    onClick={setupTestConnection}
+                                                    disabled={setupTesting || !setupApiKey}
+                                                >
+                                                    {setupTesting ? <><span className="loading"></span> Testing...</> : 'Test Connection'}
+                                                </button>
+                                                {setupTestResult && (
+                                                    <div className={`test-result ${setupTestResult.ok ? 'success' : 'failure'}`}>
+                                                        {setupTestResult.ok ? '✓' : '✗'} {setupTestResult.message}
+                                                    </div>
+                                                )}
+                                            </div>
+                                        </div>
+                                        <div className="setup-actions" style={{ gap: '0.75rem' }}>
+                                            <button className="secondary" onClick={() => { setSetupStep('choose'); setSetupTestResult(null); }}>Back</button>
+                                            <button onClick={completeSetup} disabled={!setupTestResult?.ok}>Complete Setup</button>
+                                        </div>
+                                    </>
+                                )}
+
+                                {setupStep === 'configure' && setupBackend === 'local' && (
+                                    <>
+                                        <div className="setup-title">Configure Local Backend</div>
+                                        <div className="setup-subtitle">Download the language model to run parsing locally.</div>
+                                        <div className="settings-form">
+                                            <div className="form-group">
+                                                <label>Model</label>
+                                                <div style={{ fontSize: '0.9rem', color: 'var(--text-secondary)' }}>
+                                                    Qwen3-4B (Q4_K_M) — ~2.5GB download
+                                                </div>
+                                            </div>
+                                            {!downloadStatus && (
+                                                <button onClick={setupStartDownload}>Download Model</button>
+                                            )}
+                                            {downloadStatus === 'downloading' && (
+                                                <div className="download-progress">
+                                                    <div className="download-label">
+                                                        <span className="loading"></span>
+                                                        Downloading model... This may take a few minutes.
+                                                    </div>
+                                                    <div className="progress-bar-track">
+                                                        <div className="progress-bar-fill"></div>
+                                                    </div>
+                                                </div>
+                                            )}
+                                            {downloadStatus === 'ready' && (
+                                                <>
+                                                    <div className="download-progress complete">
+                                                        ✓ Model downloaded successfully!
+                                                    </div>
+                                                    <button className="secondary" onClick={setupDeleteModel} style={{ fontSize: '0.85rem' }}>Uninstall Model</button>
+                                                </>
+                                            )}
+                                            {downloadStatus === 'error' && (
+                                                <>
+                                                    <div className="download-progress error">
+                                                        ✗ Download failed. Check your internet connection.
+                                                    </div>
+                                                    <div style={{ display: 'flex', gap: '0.5rem' }}>
+                                                        <button onClick={() => { setDownloadStatus(null); }}>Retry Download</button>
+                                                        <button className="secondary" onClick={setupDeleteModel} style={{ fontSize: '0.85rem' }}>Uninstall Model</button>
+                                                    </div>
+                                                </>
+                                            )}
+                                        </div>
+                                        <div className="setup-actions" style={{ gap: '0.75rem' }}>
+                                            <button className="secondary" onClick={() => { setSetupStep('choose'); setDownloadStatus(null); }}>Back</button>
+                                            <button onClick={completeSetup} disabled={downloadStatus !== 'ready'}>Complete Setup</button>
+                                        </div>
+                                    </>
+                                )}
+                            </div>
+                        </div>
+                    )}
+
+                    {showSettings && settingsForm && (
+                        <div className="modal-overlay" onClick={() => setShowSettings(false)}>
+                            <div className="modal-content" onClick={e => e.stopPropagation()} style={{ maxWidth: '500px' }}>
+                                <div className="modal-header">
+                                    <h2 className="modal-title">Settings</h2>
+                                    <button className="modal-close" onClick={() => setShowSettings(false)}>×</button>
+                                </div>
+                                <div className="modal-body">
+                                    <div className="settings-form">
+                                        <div className="form-group">
+                                            <label>Parsing Backend</label>
+                                            <div className="backend-toggle">
+                                                <button
+                                                    className={settingsForm.parsing_backend === 'local' ? 'active' : 'secondary'}
+                                                    onClick={() => setSettingsForm(prev => ({ ...prev, parsing_backend: 'local' }))}
+                                                >
+                                                    Local
+                                                </button>
+                                                <button
+                                                    className={settingsForm.parsing_backend === 'cloud' ? 'active' : 'secondary'}
+                                                    onClick={() => setSettingsForm(prev => ({ ...prev, parsing_backend: 'cloud' }))}
+                                                >
+                                                    Cloud
+                                                </button>
+                                            </div>
+                                        </div>
+
+                                        <div className="form-group">
+                                            <label>Default Result</label>
+                                            <div className="backend-toggle">
+                                                <button
+                                                    className={settingsForm.default_result === 'incorrect' ? 'active' : 'secondary'}
+                                                    onClick={() => setSettingsForm(prev => ({ ...prev, default_result: 'incorrect' }))}
+                                                    style={{ background: settingsForm.default_result === 'incorrect' ? 'var(--error)' : undefined }}
+                                                >
+                                                    Incorrect
+                                                </button>
+                                                <button
+                                                    className={settingsForm.default_result === 'correct' ? 'active' : 'secondary'}
+                                                    onClick={() => setSettingsForm(prev => ({ ...prev, default_result: 'correct' }))}
+                                                    style={{ background: settingsForm.default_result === 'correct' ? 'var(--success)' : undefined }}
+                                                >
+                                                    Correct
+                                                </button>
+                                            </div>
+                                        </div>
+
+                                        <div className="form-group">
+                                            <label>Debug Mode</label>
+                                            <div className="backend-toggle">
+                                                <button
+                                                    className={!settingsForm.debug_mode ? 'active' : 'secondary'}
+                                                    onClick={() => setSettingsForm(prev => ({ ...prev, debug_mode: false }))}
+                                                >
+                                                    Off
+                                                </button>
+                                                <button
+                                                    className={settingsForm.debug_mode ? 'active' : 'secondary'}
+                                                    onClick={() => setSettingsForm(prev => ({ ...prev, debug_mode: true }))}
+                                                >
+                                                    On
+                                                </button>
+                                            </div>
+                                        </div>
+
+                                        {settingsForm.parsing_backend === 'cloud' && (
+                                            <>
+                                                <div className="form-group">
+                                                    <label>API Key {settings?.api_key ? `(current: ${settings.api_key})` : ''}</label>
+                                                    <input
+                                                        type="password"
+                                                        placeholder="sk-ant-..."
+                                                        value={settingsForm.api_key}
+                                                        onChange={e => setSettingsForm(prev => ({ ...prev, api_key: e.target.value }))}
+                                                    />
+                                                </div>
+                                                <div className="form-group">
+                                                    <label>Model</label>
+                                                    <div className="model-cards">
+                                                        <div
+                                                            className={`model-card ${settingsForm.cloud_model === 'claude-sonnet-4-5-20250929' ? 'selected' : ''}`}
+                                                            onClick={() => setSettingsForm(prev => ({ ...prev, cloud_model: 'claude-sonnet-4-5-20250929' }))}
+                                                        >
+                                                            <div className="model-card-name">Claude Sonnet 4.5</div>
+                                                            <div className="model-card-desc">Best balance of speed and quality</div>
+                                                        </div>
+                                                        <div
+                                                            className={`model-card ${settingsForm.cloud_model === 'claude-haiku-4-5-20251001' ? 'selected' : ''}`}
+                                                            onClick={() => setSettingsForm(prev => ({ ...prev, cloud_model: 'claude-haiku-4-5-20251001' }))}
+                                                        >
+                                                            <div className="model-card-name">Claude Haiku 4.5</div>
+                                                            <div className="model-card-desc">Fastest and most affordable</div>
+                                                        </div>
+                                                    </div>
+                                                </div>
+                                                <div className="form-group">
+                                                    <button
+                                                        className="secondary"
+                                                        onClick={testConnection}
+                                                        disabled={testingConnection}
+                                                    >
+                                                        {testingConnection ? <><span className="loading"></span> Testing...</> : 'Test Connection'}
+                                                    </button>
+                                                    {testResult && (
+                                                        <div className={`test-result ${testResult.ok ? 'success' : 'failure'}`}>
+                                                            {testResult.ok ? '✓' : '✗'} {testResult.message}
+                                                        </div>
+                                                    )}
+                                                </div>
+                                            </>
+                                        )}
+
+                                        {settingsForm.parsing_backend === 'local' ? (
+                                            <>
+                                                <div style={{ borderTop: '1px solid var(--border)', paddingTop: '1rem', marginTop: '0.5rem' }}>
+                                                    <label style={{ fontSize: '0.95rem', fontWeight: 600, color: 'var(--text-primary)' }}>Local Model Settings</label>
+                                                </div>
+                                                {renderLocalModelFields()}
+                                                <div style={{ borderTop: '1px solid var(--border)', paddingTop: '1rem', marginTop: '0.5rem' }}>
+                                                    <label style={{ fontSize: '0.95rem', fontWeight: 600, color: 'var(--text-primary)', marginBottom: '0.5rem', display: 'block' }}>Model Management</label>
+                                                    <div style={{ display: 'flex', gap: '0.5rem' }}>
+                                                        <button className="secondary" onClick={async () => {
+                                                            await fetch('/api/models/download', { method: 'POST' });
+                                                            checkHealth();
+                                                        }}>Download Model</button>
+                                                        <button className="secondary" onClick={async () => {
+                                                            if (confirm('Delete the downloaded model? You can re-download it later.')) {
+                                                                await fetch('/api/models/delete', { method: 'POST' });
+                                                                checkHealth();
+                                                            }
+                                                        }} style={{ color: 'var(--error)' }}>Uninstall Model</button>
+                                                    </div>
+                                                </div>
+                                            </>
+                                        ) : (
+                                            <div>
+                                                <div
+                                                    style={{ cursor: 'pointer', display: 'flex', alignItems: 'center', gap: '0.5rem', color: 'var(--text-secondary)', fontSize: '0.9rem', borderTop: '1px solid var(--border)', paddingTop: '1rem', marginTop: '0.5rem' }}
+                                                    onClick={() => setShowAdvanced(prev => !prev)}
+                                                >
+                                                    <span style={{ transition: 'transform 0.2s', transform: showAdvanced ? 'rotate(90deg)' : 'rotate(0deg)', fontSize: '0.8rem' }}>&#9654;</span>
+                                                    Advanced (Local Model)
+                                                </div>
+                                                {showAdvanced && (
+                                                    <div style={{ marginTop: '1rem', display: 'flex', flexDirection: 'column', gap: '1.25rem' }}>
+                                                        {renderLocalModelFields()}
+                                                    </div>
+                                                )}
+                                            </div>
+                                        )}
+
+                                        <div style={{ borderTop: '1px solid var(--border)', paddingTop: '1rem', marginTop: '0.5rem' }}>
+                                            <label style={{ fontSize: '0.95rem', fontWeight: 600, color: 'var(--text-primary)', marginBottom: '0.5rem', display: 'block' }}>Data</label>
+                                            <button
+                                                className="danger"
+                                                style={{ fontSize: '0.85rem', padding: '0.5rem 1rem' }}
+                                                onClick={() => {
+                                                    clearAll();
+                                                    setShowSettings(false);
+                                                }}
+                                            >
+                                                Clear All Entries
+                                            </button>
+                                        </div>
+                                    </div>
+                                </div>
+                                <div className="modal-actions">
+                                    <button className="secondary" onClick={() => setShowSettings(false)}>Cancel</button>
+                                    <button onClick={saveSettings}>Save</button>
+                                </div>
                             </div>
                         </div>
                     )}
@@ -1595,6 +2949,80 @@
                             </div>
                         </div>
                     )}
+                </div>
+                </div>
+
+                {showDebug && settings?.debug_mode && (
+                    <div style={{
+                        width: '400px',
+                        minWidth: '400px',
+                        borderLeft: '1px solid var(--border)',
+                        background: 'var(--bg-card)',
+                        display: 'flex',
+                        flexDirection: 'column',
+                        overflow: 'hidden',
+                    }}>
+                        <div style={{
+                            padding: '1rem',
+                            borderBottom: '1px solid var(--border)',
+                            display: 'flex',
+                            alignItems: 'center',
+                            justifyContent: 'space-between',
+                        }}>
+                            <strong style={{ fontSize: '0.9rem' }}>Debug Log</strong>
+                            <div style={{ display: 'flex', gap: '0.5rem', alignItems: 'center' }}>
+                                <span style={{ fontSize: '0.75rem', color: 'var(--text-secondary)' }}>{debugLog.length} entries</span>
+                                {debugLog.length > 0 && (
+                                    <button className="secondary" onClick={() => setDebugLog([])} style={{ fontSize: '0.75rem', padding: '0.2rem 0.5rem' }}>Clear</button>
+                                )}
+                                <button className="secondary" onClick={() => setShowDebug(false)} style={{ fontSize: '0.75rem', padding: '0.2rem 0.5rem' }}>×</button>
+                            </div>
+                        </div>
+                        <div style={{ flex: 1, overflow: 'auto', fontFamily: "'JetBrains Mono', monospace", fontSize: '0.78rem' }}>
+                            {debugLog.length === 0 && (
+                                <div style={{ padding: '2rem 1rem', textAlign: 'center', color: 'var(--text-secondary)' }}>
+                                    Parse a question to see debug output here.
+                                </div>
+                            )}
+                            {[...debugLog].reverse().map((log, i) => (
+                                <div key={i} style={{ padding: '0.75rem 1rem', borderBottom: '1px solid var(--border)' }}>
+                                    <div style={{ color: 'var(--text-secondary)', marginBottom: '0.5rem', fontSize: '0.72rem' }}>
+                                        {log.timestamp} &middot; {log.backend} &middot; {log.model}{log.attempt ? ` &middot; attempt ${log.attempt}` : ''}
+                                    </div>
+                                    <div style={{ marginBottom: '0.25rem', color: 'var(--accent)', fontWeight: 600 }}>INPUT</div>
+                                    <pre style={{ whiteSpace: 'pre-wrap', wordBreak: 'break-word', margin: '0 0 0.75rem 0', color: 'var(--text-primary)', lineHeight: 1.4 }}>{log.input}</pre>
+                                    <div style={{ marginBottom: '0.25rem', color: 'var(--success)', fontWeight: 600 }}>RAW OUTPUT</div>
+                                    <pre style={{ whiteSpace: 'pre-wrap', wordBreak: 'break-word', margin: 0, color: 'var(--text-primary)', lineHeight: 1.4 }}>{log.raw_output}</pre>
+                                </div>
+                            ))}
+                        </div>
+                    </div>
+                )}
+
+                {showShortcuts && (
+                    <div className="modal-overlay" onClick={() => setShowShortcuts(false)}>
+                        <div className="modal-content" onClick={e => e.stopPropagation()} style={{ maxWidth: '440px' }}>
+                            <div className="modal-header">
+                                <h2 className="modal-title">Keyboard Shortcuts</h2>
+                                <button className="modal-close" onClick={() => setShowShortcuts(false)}>×</button>
+                            </div>
+                            <div className="modal-body" style={{ padding: '0.5rem 0' }}>
+                                <table className="shortcuts-table">
+                                    <tbody>
+                                        {SHORTCUTS.map((s, i) => (
+                                            <tr key={i}>
+                                                <td><span className="kbd">{s.keys}</span></td>
+                                                <td>{s.desc}</td>
+                                            </tr>
+                                        ))}
+                                    </tbody>
+                                </table>
+                            </div>
+                        </div>
+                    </div>
+                )}
+
+                {toast && <div className="toast">{toast}</div>}
                 </div>
             );
         }
