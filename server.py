@@ -9,23 +9,56 @@ from flask import Flask, request, jsonify, send_from_directory
 from flask_cors import CORS
 
 app = Flask(__name__, static_folder='static')
-CORS(app)
+# Restrict CORS to localhost only
+CORS(app, resources={
+    r"/api/*": {
+        "origins": ["http://localhost:5111", "http://127.0.0.1:5111"]
+    }
+})
+
+
+@app.after_request
+def set_security_headers(response):
+    """Add security headers to all responses."""
+    response.headers['X-Frame-Options'] = 'DENY'
+    response.headers['X-Content-Type-Options'] = 'nosniff'
+    response.headers['X-XSS-Protection'] = '1; mode=block'
+    response.headers['Referrer-Policy'] = 'no-referrer'
+    # CSP for local app
+    response.headers['Content-Security-Policy'] = (
+        "default-src 'self'; "
+        "script-src 'self' 'unsafe-inline' https://unpkg.com; "
+        "style-src 'self' 'unsafe-inline'; "
+        "img-src 'self' data:; "
+        "font-src 'self' data:;"
+    )
+    return response
+
 
 SAMPLE_RATE = 16000  # Parakeet expects 16kHz mono audio
 
 # Data persistence
-DATA_DIR = Path.home() / '.peresteparse'
+DATA_DIR = Path.home() / '.pereste'
 DATA_FILE = DATA_DIR / 'entries.json'
 LOG_FILE = DATA_DIR / 'debug.log'
 DATA_DIR.mkdir(exist_ok=True)
 
-# Setup logging
+# Setup logging with rotation
 import logging
-logging.basicConfig(
-    filename=str(LOG_FILE),
-    level=logging.DEBUG,
-    format='%(asctime)s - %(levelname)s - %(message)s'
+from logging.handlers import RotatingFileHandler
+
+logger = logging.getLogger(__name__)
+logger.setLevel(logging.DEBUG)
+
+file_handler = RotatingFileHandler(
+    str(LOG_FILE),
+    maxBytes=10 * 1024 * 1024,  # 10MB max size
+    backupCount=3                # Keep 3 backup files
 )
+file_handler.setLevel(logging.DEBUG)
+formatter = logging.Formatter('%(asctime)s - %(name)s - %(levelname)s - %(message)s')
+file_handler.setFormatter(formatter)
+logger.addHandler(file_handler)
 
 # --- Model management ---
 MODELS_DIR = DATA_DIR / 'models'
@@ -41,6 +74,43 @@ _download_status = {'llm': 'unknown', 'stt': 'unknown'}
 _recording = False
 _recorded_frames = []
 _recording_lock = threading.Lock()
+
+
+# --- Security validation functions ---
+def validate_model_filename(filename):
+    """Validate that filename is safe (no path traversal)."""
+    if not filename:
+        return False
+    # Only allow alphanumeric, dots, hyphens, underscores
+    if not re.match(r'^[a-zA-Z0-9._-]+$', filename):
+        return False
+    # Reject path separators
+    if '..' in filename or '/' in filename or '\\' in filename:
+        return False
+    return True
+
+
+def sanitize_transcription(text, max_length=5000):
+    """Basic sanitization of user input before sending to LLM."""
+    if not text or not isinstance(text, str):
+        return ""
+
+    # Truncate to reasonable length
+    text = text[:max_length]
+
+    # Reject obvious prompt injection patterns
+    suspicious_patterns = [
+        r'ignore\s+(previous|all)\s+instructions',
+        r'system\s+prompt',
+        r'<\|.*?\|>',  # Special tokens
+        r'\[INST\]',   # Instruction tags
+    ]
+
+    for pattern in suspicious_patterns:
+        if re.search(pattern, text, re.IGNORECASE):
+            raise ValueError("Input contains potentially unsafe content")
+
+    return text
 
 
 def get_model_path():
@@ -64,7 +134,7 @@ def get_llm():
             return _llm
         try:
             from llama_cpp import Llama
-            logging.info(f"Loading LLM from {model_path}...")
+            logger.info(f"Loading LLM from {model_path}...")
             _llm = Llama(
                 model_path=str(model_path),
                 n_ctx=get_setting('llm_context_size'),
@@ -72,10 +142,10 @@ def get_llm():
                 verbose=False,
             )
             _download_status['llm'] = 'ready'
-            logging.info("LLM loaded successfully")
+            logger.info("LLM loaded successfully")
             return _llm
         except Exception as e:
-            logging.error(f"Failed to load LLM: {e}")
+            logger.error(f"Failed to load LLM: {e}")
             _download_status['llm'] = 'error'
             return None
 
@@ -88,18 +158,18 @@ def download_model_background():
         from huggingface_hub import hf_hub_download
         repo_id = get_setting('llm_repo_id')
         filename = get_setting('llm_filename')
-        logging.info(f"Downloading {repo_id}/{filename}...")
+        logger.info(f"Downloading {repo_id}/{filename}...")
         hf_hub_download(
             repo_id=repo_id,
             filename=filename,
             local_dir=str(MODELS_DIR),
         )
         _download_status['llm'] = 'ready'
-        logging.info("LLM model download complete")
+        logger.info("LLM model download complete")
     except Exception as e:
         _download_status['llm'] = 'error'
         _download_status['llm_error'] = str(e)
-        logging.error(f"Model download failed: {e}")
+        logger.error(f"Model download failed: {e}")
 
 
 def check_model_status():
@@ -137,14 +207,14 @@ def get_stt():
         try:
             from parakeet_mlx import from_pretrained
             stt_model_id = get_setting('stt_model_id')
-            logging.info(f"Loading STT model {stt_model_id}...")
+            logger.info(f"Loading STT model {stt_model_id}...")
             _download_status['stt'] = 'downloading'
             _stt = from_pretrained(stt_model_id)
             _download_status['stt'] = 'ready'
-            logging.info("STT model loaded successfully")
+            logger.info("STT model loaded successfully")
             return _stt
         except Exception as e:
-            logging.error(f"Failed to load STT model: {e}")
+            logger.error(f"Failed to load STT model: {e}")
             _download_status['stt'] = 'error'
             _download_status['stt_error'] = str(e)
             return None
@@ -210,22 +280,23 @@ SYSTEM_PROMPT = """You are a precise JSON parser for study transcriptions. A stu
 
 From the transcription, extract:
 - "front": A clean, concise version of the question (like an Anki card front). Write it as a proper question.
-- "back": ONLY the direct answer. Keep this SHORT (2-3 sentences maximum).
+- "back": The answer with clear reasoning and context (3-5 sentences).
   * State the correct answer clearly
-  * Include ONLY the essential reasoning
-  * Do NOT include definitions, additional details, or supplementary information here
-  * Example: "The answer is X because it does Y."
-- "notes": ALL additional information goes here. This should be DETAILED.
+  * Explain WHY this is the correct answer in the context of the question
+  * Include the key reasoning that makes this answer correct
+  * Provide enough context so the answer makes sense on its own
+  * Example: "The answer is X because Y. This occurs because Z mechanism. In this context, X is significant because W."
+- "notes": ALL additional supporting information goes here. This should be DETAILED.
   * Definitions and key terminology
   * Related concepts and their relationships
   * Real-world applications or significance
   * Additional context from the transcription
   * Mnemonics, confusion points, or connections to other topics
   * Format with bullet points for organization
-  * This field should contain most of the educational content
+  * This field should contain most of the supplementary educational content
 - "tags": array of 1-4 short topic tags for Anki (e.g. ["topic_name", "subtopic", "concept"])
 
-IMPORTANT: The back should be SHORT (just the answer + brief reasoning). All definitions and detailed information belong in notes.
+IMPORTANT: The back should contain a complete, contextual explanation (3-5 sentences). The notes should have all the supplementary details, definitions, and additional context.
 
 CRITICAL JSON FORMATTING RULES:
 1. Your response must be ONLY a valid JSON object starting with { and ending with }
@@ -238,8 +309,8 @@ CRITICAL JSON FORMATTING RULES:
 Example format:
 {
   "front": "What is the question?",
-  "back": "The answer is X because Y.",
-  "notes": "Detail 1. Detail 2.",
+  "back": "The answer is X because Y. This occurs through Z mechanism. In this clinical context, X is the most likely answer because it explains the symptoms A and B. The key reasoning is that X directly causes the observed findings.",
+  "notes": "• Definition of X\\n• Related concepts and differential diagnoses\\n• Clinical significance\\n• Additional details",
   "tags": ["tag1", "tag2"]
 }"""
 
@@ -286,6 +357,19 @@ def extract_json(text):
     except json.JSONDecodeError as e:
         original_text = text
 
+        # Fix unescaped newlines and control characters in string values
+        # This is the most common issue with GGUF models
+        def escape_string_content(match):
+            """Escape newlines and tabs within JSON string values"""
+            key = match.group(1)
+            value = match.group(2)
+            # Replace literal newlines with \n and tabs with \t
+            value = value.replace('\n', '\\n').replace('\t', '\\t').replace('\r', '\\r')
+            return f'"{key}": "{value}"'
+
+        # Match "key": "value" patterns and escape content
+        text = re.sub(r'"(front|back|notes|section|tags)":\s*"([^"]*(?:\n[^"]*)*)"', escape_string_content, text, flags=re.DOTALL)
+
         # Remove trailing commas
         text = re.sub(r',\s*}', '}', text)
         text = re.sub(r',\s*]', ']', text)
@@ -301,8 +385,8 @@ def extract_json(text):
         try:
             return json.loads(text)
         except json.JSONDecodeError:
-            logging.error(f"Could not fix JSON. Original: {original_text[:200]}")
-            logging.error(f"After fixes: {text[:200]}")
+            logger.error(f"Could not fix JSON. Original: {original_text[:200]}")
+            logger.error(f"After fixes: {text[:200]}")
             raise e
 
 
@@ -311,8 +395,12 @@ def cloud_parse(transcription):
     config = load_config()
     if not config.get('api_key'):
         raise ValueError("No API key configured. Set your Anthropic API key in Settings.")
+
+    # Sanitize input to prevent prompt injection
+    transcription = sanitize_transcription(transcription)
+
     import anthropic
-    logging.info(f"[CLOUD INPUT] model={config['cloud_model']}, transcription={transcription!r}")
+    logger.info(f"[CLOUD INPUT] model={config['cloud_model']}, input_length={len(transcription)}")
     client = anthropic.Anthropic(api_key=config['api_key'])
     response = client.messages.create(
         model=config['cloud_model'],
@@ -322,14 +410,15 @@ def cloud_parse(transcription):
         temperature=0.1,
     )
     text = response.content[0].text
-    logging.info(f"[CLOUD OUTPUT] raw response: {text}")
+    logger.info(f"[CLOUD OUTPUT] output_length={len(text)}")
     parsed = extract_json(text)
     if config.get('debug_mode', False):
         parsed['_debug'] = {
             'backend': 'cloud',
             'model': config['cloud_model'],
-            'input': transcription,
-            'raw_output': text,
+            'input_length': len(transcription),
+            'raw_output_length': len(text),
+            'parse_success': True
         }
     return parsed
 
@@ -409,6 +498,33 @@ def models_status():
     return jsonify(status)
 
 
+@app.route('/api/models/check-all', methods=['POST'])
+def models_check_all():
+    """Check which models from a list are already downloaded."""
+    data = request.json
+    models = data.get('models', [])
+    results = {}
+
+    for model in models:
+        model_id = model.get('id')
+        filename = model.get('filename')
+        if not model_id or not filename:
+            continue
+
+        # Validate filename to prevent path traversal
+        if not validate_model_filename(filename):
+            continue  # Skip invalid filenames
+
+        model_path = MODELS_DIR / filename
+        results[model_id] = {
+            'downloaded': model_path.exists(),
+            'size_mb': round(model_path.stat().st_size / (1024 * 1024), 1) if model_path.exists() else None,
+            'path': str(model_path)
+        }
+
+    return jsonify(results)
+
+
 @app.route('/api/models/download', methods=['POST'])
 def models_download():
     """Trigger model download in background."""
@@ -425,16 +541,32 @@ def models_download():
 
 @app.route('/api/models/delete', methods=['POST'])
 def models_delete():
-    """Delete the downloaded LLM model file."""
+    """Delete a specific LLM model file or the current one."""
     global _llm
-    model_path = get_model_path()
+    data = request.json or {}
+    filename = data.get('filename')
+
+    # If filename specified, delete that specific file
+    if filename:
+        # Validate filename to prevent path traversal
+        if not validate_model_filename(filename):
+            return jsonify({'error': 'Invalid filename'}), 400
+        model_path = MODELS_DIR / filename
+    else:
+        # Otherwise delete the currently configured model
+        model_path = get_model_path()
+
     if not model_path.exists():
-        return jsonify({'status': 'not_found', 'message': 'No model file to delete.'})
+        return jsonify({'status': 'not_found', 'message': 'Model file not found.'})
+
     try:
+        # If deleting the active model, unload it first
+        if model_path == get_model_path():
+            _llm = None
+            _download_status['llm'] = 'missing'
+
         model_path.unlink()
-        _llm = None
-        _download_status['llm'] = 'missing'
-        return jsonify({'status': 'deleted'})
+        return jsonify({'status': 'deleted', 'filename': filename or get_setting('llm_filename')})
     except Exception as e:
         return jsonify({'status': 'error', 'message': str(e)}), 500
 
@@ -459,9 +591,50 @@ def set_config():
         'llm_repo_id', 'llm_filename', 'llm_context_size', 'stt_model_id',
         'setup_complete', 'default_result', 'debug_mode',
     }
+
+    # Create new_config with only allowed keys
+    new_config = {}
     for key in allowed_keys:
         if key in data:
-            config[key] = data[key]
+            new_config[key] = data[key]
+
+    # Whitelist allowed cloud models
+    ALLOWED_CLOUD_MODELS = [
+        'claude-sonnet-4-5-20250929',
+        'claude-3-7-sonnet-20250219',
+        'claude-3-5-sonnet-20241022',
+        'claude-3-opus-20240229',
+        'claude-3-haiku-20240307'
+    ]
+
+    # Validate cloud_model
+    if 'cloud_model' in new_config:
+        if new_config['cloud_model'] not in ALLOWED_CLOUD_MODELS:
+            return jsonify({'error': 'Invalid cloud model'}), 400
+
+    # Validate llm_repo_id format
+    if 'llm_repo_id' in new_config:
+        if not re.match(r'^[a-zA-Z0-9\-_.]+/[a-zA-Z0-9\-_.]+$', new_config['llm_repo_id']):
+            return jsonify({'error': 'Invalid repo_id format'}), 400
+
+    # Validate llm_filename
+    if 'llm_filename' in new_config:
+        if not validate_model_filename(new_config['llm_filename']):
+            return jsonify({'error': 'Invalid model filename'}), 400
+
+    # Validate llm_context_size
+    if 'llm_context_size' in new_config:
+        try:
+            context_size = int(new_config['llm_context_size'])
+            if not (512 <= context_size <= 32768):
+                return jsonify({'error': 'Context size must be 512-32768'}), 400
+            new_config['llm_context_size'] = context_size
+        except (ValueError, TypeError):
+            return jsonify({'error': 'llm_context_size must be an integer'}), 400
+
+    # Apply validated updates to config
+    for key, value in new_config.items():
+        config[key] = value
 
     # Validate parsing_backend
     if config['parsing_backend'] not in ('local', 'cloud'):
@@ -470,13 +643,6 @@ def set_config():
     # Validate debug_mode is boolean
     if 'debug_mode' in data:
         config['debug_mode'] = bool(config['debug_mode'])
-
-    # Validate llm_context_size is integer
-    if not isinstance(config['llm_context_size'], int):
-        try:
-            config['llm_context_size'] = int(config['llm_context_size'])
-        except (ValueError, TypeError):
-            return jsonify({'error': 'llm_context_size must be an integer'}), 400
 
     save_config(config)
 
@@ -492,15 +658,93 @@ def save_entries():
         data = request.json
         entries = data.get('entries', [])
 
-        logging.info(f"Saving {len(entries)} entries to {DATA_FILE}")
+        logger.info(f"Saving {len(entries)} entries to {DATA_FILE}")
 
         with open(DATA_FILE, 'w') as f:
             json.dump(entries, f, indent=2)
 
-        logging.info(f"Successfully saved {len(entries)} entries")
+        logger.info(f"Successfully saved {len(entries)} entries")
         return jsonify({'status': 'ok', 'count': len(entries)})
     except Exception as e:
-        logging.error(f"Error saving entries: {str(e)}")
+        logger.error(f"Error saving entries: {str(e)}")
+        return jsonify({'error': str(e)}), 500
+
+
+@app.route('/api/import-csv', methods=['POST'])
+def import_csv():
+    """Import entries from uploaded CSV file."""
+    try:
+        import csv
+        import io
+
+        # Max file size check
+        MAX_CSV_SIZE = 50 * 1024 * 1024  # 50MB
+
+        if 'file' not in request.files:
+            return jsonify({'error': 'No file uploaded'}), 400
+
+        file = request.files['file']
+        if file.filename == '':
+            return jsonify({'error': 'No file selected'}), 400
+
+        # Validate filename extension
+        if not file.filename.lower().endswith('.csv'):
+            return jsonify({'error': 'File must be a CSV'}), 400
+
+        # Check file size
+        file.seek(0, os.SEEK_END)
+        file_size = file.tell()
+        file.seek(0)
+
+        if file_size > MAX_CSV_SIZE:
+            return jsonify({'error': f'File too large (max {MAX_CSV_SIZE // (1024*1024)}MB)'}), 400
+
+        # Read with error handling
+        try:
+            content = file.read().decode('utf-8')
+        except UnicodeDecodeError:
+            return jsonify({'error': 'Invalid CSV encoding (must be UTF-8)'}), 400
+
+        # Whitelist allowed fields
+        ALLOWED_FIELDS = {'number', 'section', 'result', 'front', 'back', 'notes', 'tags'}
+
+        reader = csv.DictReader(io.StringIO(content))
+
+        entries = []
+        for row in reader:
+            entry = {}
+            for key, value in row.items():
+                # Only process allowed fields
+                if key not in ALLOWED_FIELDS:
+                    continue
+                if not key or value == '':
+                    continue
+
+                # Convert tags back to array
+                if key == 'tags':
+                    entry[key] = [tag.strip() for tag in value.split(';') if tag.strip()]
+                # Convert number to int
+                elif key == 'number':
+                    try:
+                        entry[key] = int(value) if value else None
+                    except ValueError:
+                        entry[key] = value
+                # Keep other fields as strings
+                else:
+                    entry[key] = value
+
+            if entry:  # Only add non-empty entries
+                entries.append(entry)
+
+        logger.info(f"Imported {len(entries)} entries from CSV")
+        return jsonify({
+            'success': True,
+            'entries': entries,
+            'count': len(entries)
+        })
+
+    except Exception as e:
+        logger.error(f"Error importing CSV: {str(e)}")
         return jsonify({'error': str(e)}), 500
 
 
@@ -519,7 +763,7 @@ def export_csv():
 
         # Save directly to Downloads folder
         downloads_dir = Path.home() / 'Downloads'
-        filename = f'peresteparse-{filter_type}-{int(time.time())}.csv'
+        filename = f'pereste-parse-{filter_type}-{int(time.time())}.csv'
         filepath = downloads_dir / filename
 
         # Write CSV file
@@ -543,7 +787,7 @@ def export_csv():
                         row[key] = str(value)
                 writer.writerow(row)
 
-        logging.info(f"Exported {len(entries)} entries to {filepath}")
+        logger.info(f"Exported {len(entries)} entries to {filepath}")
         return jsonify({
             'success': True,
             'filename': filename,
@@ -551,7 +795,7 @@ def export_csv():
         })
 
     except Exception as e:
-        logging.error(f"Error exporting CSV: {str(e)}")
+        logger.error(f"Error exporting CSV: {str(e)}")
         return jsonify({'error': str(e)}), 500
 
 
@@ -574,7 +818,7 @@ def export_apkg():
 
         model = genanki.Model(
             PERESTEPARSE_MODEL_ID,
-            'Pereste',
+            'Pereste Parse',
             fields=[{'name': 'Front'}, {'name': 'Back'}, {'name': 'Notes'}],
             templates=[{
                 'name': 'Card 1',
@@ -586,7 +830,7 @@ def export_apkg():
                 ' .notes { font-size: 16px; color: #666; font-style: italic; }'
         )
 
-        deck = genanki.Deck(PERESTEPARSE_DECK_ID, 'Pereste')
+        deck = genanki.Deck(PERESTEPARSE_DECK_ID, 'Pereste Parse')
 
         for entry in entries:
             front = entry.get('front', '') or ''
@@ -602,11 +846,11 @@ def export_apkg():
 
         # Save to Downloads folder
         downloads_dir = Path.home() / 'Downloads'
-        filename = f'peresteparse-{filter_type}-{int(time.time())}.apkg'
+        filename = f'pereste-parse-{filter_type}-{int(time.time())}.apkg'
         filepath = downloads_dir / filename
         genanki.Package(deck).write_to_file(str(filepath))
 
-        logging.info(f"Exported {len(entries)} entries to {filepath}")
+        logger.info(f"Exported {len(entries)} entries to {filepath}")
         return jsonify({
             'success': True,
             'filename': filename,
@@ -614,7 +858,7 @@ def export_apkg():
         })
 
     except Exception as e:
-        logging.error(f"Error exporting APKG: {str(e)}")
+        logger.error(f"Error exporting APKG: {str(e)}")
         return jsonify({'error': str(e)}), 500
 
 
@@ -623,28 +867,28 @@ def load_entries():
     """Load entries from persistent storage."""
     try:
         if not DATA_FILE.exists():
-            logging.info(f"Data file does not exist, returning empty entries")
+            logger.info(f"Data file does not exist, returning empty entries")
             return jsonify({'entries': []})
 
         # Check if file is empty
         if DATA_FILE.stat().st_size == 0:
-            logging.info(f"Data file is empty, returning empty entries")
+            logger.info(f"Data file is empty, returning empty entries")
             return jsonify({'entries': []})
 
         with open(DATA_FILE, 'r') as f:
             content = f.read().strip()
             if not content:
-                logging.info(f"Data file content is empty, returning empty entries")
+                logger.info(f"Data file content is empty, returning empty entries")
                 return jsonify({'entries': []})
             entries = json.loads(content)
 
-        logging.info(f"Loaded {len(entries)} entries from {DATA_FILE}")
+        logger.info(f"Loaded {len(entries)} entries from {DATA_FILE}")
         return jsonify({'entries': entries})
     except json.JSONDecodeError as e:
-        logging.error(f"JSON decode error loading entries: {str(e)}")
+        logger.error(f"JSON decode error loading entries: {str(e)}")
         return jsonify({'entries': []})  # Return empty instead of error
     except Exception as e:
-        logging.error(f"Error loading entries: {str(e)}")
+        logger.error(f"Error loading entries: {str(e)}")
         return jsonify({'entries': []})  # Return empty instead of error
 
 
@@ -679,14 +923,14 @@ def parse():
             try:
                 parsed_data = cloud_parse(transcription)
                 _apply_section(parsed_data, section)
-                logging.info(f"Cloud parse succeeded on attempt {attempt + 1}")
+                logger.info(f"Cloud parse succeeded on attempt {attempt + 1}")
                 return jsonify(parsed_data)
             except ValueError as e:
-                # Missing API key — no point retrying
+                # Missing API key or sanitization error — no point retrying
                 return jsonify({'error': str(e)}), 400
             except json.JSONDecodeError as e:
                 last_error = e
-                logging.warning(f"Cloud attempt {attempt + 1} JSON error: {e}")
+                logger.warning(f"Cloud attempt {attempt + 1} JSON error: {e}")
                 if attempt < max_retries - 1:
                     time.sleep(0.5)
                 else:
@@ -702,6 +946,12 @@ def parse():
                 }), 500
 
     # --- Local backend ---
+    # Sanitize input to prevent prompt injection
+    try:
+        transcription = sanitize_transcription(transcription)
+    except ValueError as e:
+        return jsonify({'error': str(e)}), 400
+
     llm = get_llm()
     if llm is None:
         return jsonify({
@@ -718,10 +968,10 @@ def parse():
         from llama_cpp import LlamaGrammar
         grammar = LlamaGrammar.from_string(PARSE_GRAMMAR)
     except Exception as e:
-        logging.warning(f"Could not load GBNF grammar, proceeding without: {e}")
+        logger.warning(f"Could not load GBNF grammar, proceeding without: {e}")
         grammar = None
 
-    logging.info(f"[LOCAL INPUT] transcription={transcription!r}")
+    logger.info(f"[LOCAL INPUT] input_length={len(transcription)}")
 
     for attempt in range(max_retries):
         try:
@@ -738,8 +988,8 @@ def parse():
 
             generated_text = response['choices'][0]['message']['content']
 
-            # Debug: log the raw response
-            logging.info(f"[LOCAL OUTPUT] attempt {attempt + 1}: {generated_text}")
+            # Debug: log the raw response length
+            logger.info(f"[LOCAL OUTPUT] attempt {attempt + 1}, output_length={len(generated_text)}")
 
             # Extract JSON from response
             parsed_data = extract_json(generated_text)
@@ -748,23 +998,24 @@ def parse():
                 parsed_data['_debug'] = {
                     'backend': 'local',
                     'model': get_setting('llm_filename'),
-                    'input': transcription,
-                    'raw_output': generated_text,
+                    'input_length': len(transcription),
+                    'raw_output_length': len(generated_text),
                     'attempt': attempt + 1,
+                    'parse_success': True
                 }
 
-            logging.info(f"Successfully parsed JSON on attempt {attempt + 1}")
+            logger.info(f"Successfully parsed JSON on attempt {attempt + 1}")
             return jsonify(parsed_data)
 
         except json.JSONDecodeError as e:
             last_error = e
-            logging.warning(f"Attempt {attempt + 1} failed with JSON parse error: {str(e)}")
+            logger.warning(f"Attempt {attempt + 1} failed with JSON parse error: {str(e)}")
             if attempt < max_retries - 1:
-                logging.info(f"Retrying... ({attempt + 2}/{max_retries})")
+                logger.info(f"Retrying... ({attempt + 2}/{max_retries})")
                 time.sleep(0.5)
             else:
-                logging.error(f"All {max_retries} attempts failed")
-                logging.error(f"Raw response that failed: {generated_text}")
+                logger.error(f"All {max_retries} attempts failed")
+                logger.error(f"Raw response length: {len(generated_text) if generated_text else 0}")
                 return jsonify({
                     'error': 'Failed to parse JSON from LLM response after multiple attempts',
                     'details': str(last_error),
@@ -804,12 +1055,12 @@ def record_start():
         _stream.start()
         # Store stream reference so we can stop it later
         app.config['_audio_stream'] = _stream
-        logging.info("Recording started")
+        logger.info("Recording started")
         return jsonify({'status': 'recording'})
     except Exception as e:
         with _recording_lock:
             _recording = False
-        logging.error(f"Failed to start recording: {e}")
+        logger.error(f"Failed to start recording: {e}")
         return jsonify({'error': f'Failed to start recording: {str(e)}'}), 500
 
 
@@ -838,7 +1089,7 @@ def record_stop():
     _recorded_frames = []
 
     duration = len(audio_data) / SAMPLE_RATE
-    logging.info(f"Recording stopped. Duration: {duration:.1f}s, samples: {len(audio_data)}")
+    logger.info(f"Recording stopped. Duration: {duration:.1f}s, samples: {len(audio_data)}")
 
     if duration < 0.5:
         return jsonify({'error': 'Recording too short (< 0.5s)'}), 400
@@ -849,25 +1100,29 @@ def record_stop():
         if stt is None:
             return jsonify({'error': 'STT model not available', 'model_status': check_model_status()}), 503
 
-        logging.info("Transcribing audio...")
+        logger.info("Transcribing audio...")
         # parakeet-mlx expects a file path, not a numpy array
         import soundfile as sf
         with tempfile.NamedTemporaryFile(suffix='.wav', delete=False) as tmp:
-            sf.write(tmp.name, audio_data, SAMPLE_RATE, format='WAV')
             tmp_path = tmp.name
+            sf.write(tmp_path, audio_data, SAMPLE_RATE, format='WAV')
         try:
             result = stt.transcribe(tmp_path)
         finally:
-            os.unlink(tmp_path)
+            # Ensure file is deleted even if transcription fails
+            try:
+                os.unlink(tmp_path)
+            except FileNotFoundError:
+                pass  # Already deleted
         text = result.text.strip()
-        logging.info(f"Transcription result: {text[:100]}...")
+        logger.info(f"Transcription result: {text[:100]}...")
 
         return jsonify({
             'text': text,
             'duration': round(duration, 1),
         })
     except Exception as e:
-        logging.error(f"Transcription failed: {e}")
+        logger.error(f"Transcription failed: {e}")
         return jsonify({'error': f'Transcription failed: {str(e)}'}), 500
 
 
@@ -897,30 +1152,34 @@ def transcribe():
             audio_data = soxr.resample(audio_data, sample_rate, SAMPLE_RATE)
 
         duration = len(audio_data) / SAMPLE_RATE
-        logging.info(f"Received audio: {duration:.1f}s at {sample_rate}Hz")
+        logger.info(f"Received audio: {duration:.1f}s at {sample_rate}Hz")
 
         stt = get_stt()
         if stt is None:
             return jsonify({'error': 'STT model not available', 'model_status': check_model_status()}), 503
 
-        logging.info("Transcribing uploaded audio...")
+        logger.info("Transcribing uploaded audio...")
         # parakeet-mlx expects a file path, not a numpy array
         with tempfile.NamedTemporaryFile(suffix='.wav', delete=False) as tmp:
-            sf.write(tmp.name, audio_data, SAMPLE_RATE, format='WAV')
             tmp_path = tmp.name
+            sf.write(tmp_path, audio_data, SAMPLE_RATE, format='WAV')
         try:
             result = stt.transcribe(tmp_path)
         finally:
-            os.unlink(tmp_path)
+            # Ensure file is deleted even if transcription fails
+            try:
+                os.unlink(tmp_path)
+            except FileNotFoundError:
+                pass  # Already deleted
         text = result.text.strip()
-        logging.info(f"Transcription result: {text[:100]}...")
+        logger.info(f"Transcription result: {text[:100]}...")
 
         return jsonify({
             'text': text,
             'duration': round(duration, 1),
         })
     except Exception as e:
-        logging.error(f"Transcription failed: {e}")
+        logger.error(f"Transcription failed: {e}")
         return jsonify({'error': f'Transcription failed: {str(e)}'}), 500
 
 
