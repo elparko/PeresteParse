@@ -170,7 +170,7 @@ class TestExtractJsonMalformedInput:
 class TestExtractJsonFullPeresteResponse:
     """Tests with realistic Pereste-style LLM responses."""
 
-    def test_full_anatomix_response(self):
+    def test_full_peresteparse_response(self):
         response = json.dumps({
             "number": 42,
             "result": "correct",
