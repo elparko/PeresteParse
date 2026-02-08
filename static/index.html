@@ -1257,7 +1257,7 @@
         const { useState, useEffect, useRef } = React;
 
         const SHORTCUTS = [
-            { keys: '\u2318\u21E7R', desc: 'Record / stop recording' },
+            { keys: '\u2318\u21E7R', desc: 'Record / stop (or Next in flow mode)' },
             { keys: '\u2318\u21A9', desc: 'Parse transcription' },
             { keys: '\u2318\u232B', desc: 'Clear transcription' },
             { keys: '\u2318,', desc: 'Open / close Settings' },
@@ -1267,6 +1267,7 @@
             { keys: '\u2318\u21E7E', desc: 'Toggle export menu' },
             { keys: '\u2318J', desc: 'Scroll to latest entry' },
             { keys: '\u2318Z', desc: 'Undo last parse' },
+            { keys: '\u2318\u21E7F', desc: 'Start / stop flow mode' },
             { keys: '? or \u2318/', desc: 'Show keyboard shortcuts' },
         ];
 
@@ -1359,6 +1360,7 @@
             const [lastParse, setLastParse] = useState(null);
             const [showShortcuts, setShowShortcuts] = useState(false);
             const [showExportMenu, setShowExportMenu] = useState(false);
+            const [flowMode, setFlowMode] = useState(() => localStorage.getItem('flowMode') === 'true');
             const [exportSections, setExportSections] = useState(new Set());
             const textareaRef = useRef(null);
             const tableEndRef = useRef(null);
@@ -1366,6 +1368,8 @@
             const exportMenuRef = useRef(null);
             const isInitialMount = useRef(true);
             const toastTimeoutRef = useRef(null);
+            const flowPendingAction = useRef(null); // 'next' | 'redo' | null
+            const handleParseRef = useRef(null);
 
             // Refs for keyboard handler to avoid stale closures
             const filterRef = useRef(filter);
@@ -1792,6 +1796,25 @@
                 localStorage.setItem('collapsedSections', JSON.stringify([...collapsedSections]));
             }, [collapsedSections]);
 
+            useEffect(() => {
+                localStorage.setItem('flowMode', flowMode);
+            }, [flowMode]);
+
+            // Chain flow actions after transcription finishes
+            useEffect(() => {
+                if (!transcribing && flowPendingAction.current) {
+                    const action = flowPendingAction.current;
+                    flowPendingAction.current = null;
+
+                    if (action === 'next') {
+                        handleParseRef.current();
+                    } else if (action === 'redo') {
+                        setTranscription('');
+                        startRecording();
+                    }
+                }
+            }, [transcribing]);
+
             async function checkHealth() {
                 try {
                     const res = await fetch('/api/health');
@@ -1848,6 +1871,30 @@
                 setTranscription('');
                 textareaRef.current?.focus();
                 showToast(`Added to queue (${parseQueue.length + 1} items)`);
+
+                // Flow mode: auto-start recording for next entry
+                if (flowMode && !recording) {
+                    setTimeout(() => startRecording(), 100);
+                }
+            }
+
+            // Keep handleParseRef in sync so flow useEffect can call latest version
+            handleParseRef.current = handleParse;
+
+            function handleFlowNext() {
+                flowPendingAction.current = 'next';
+                stopRecording();
+            }
+
+            function handleFlowRedo() {
+                flowPendingAction.current = 'redo';
+                stopRecording();
+            }
+
+            function handleFlowStop() {
+                flowPendingAction.current = null;
+                if (recording) stopRecording();
+                setFlowMode(false);
             }
 
             // Process queue - runs when queue changes and not currently parsing
@@ -1904,6 +1951,7 @@
                         // Add entry
                         const newEntry = {
                             ...data,
+                            tags: (data.tags || []).map(t => t.trim().replace(/\s+/g, '_')).filter(Boolean),
                             result: defaultResult,
                             id: Date.now(),
                             timestamp: new Date().toISOString(),
@@ -1912,11 +1960,6 @@
 
                         setEntries(prev => [...prev, newEntry]);
                         setLastParse({ entry: newEntry, transcription: item.transcription });
-
-                        // Scroll to new entry
-                        setTimeout(() => {
-                            tableEndRef.current?.scrollIntoView({ behavior: 'smooth' });
-                        }, 100);
 
                         // Remove highlight animation after 1s
                         setTimeout(() => {
@@ -1952,10 +1995,30 @@
                     const tag = document.activeElement?.tagName;
                     const inInput = tag === 'INPUT' || tag === 'TEXTAREA';
 
-                    // Cmd+Shift+R — toggle recording
+                    // Cmd+Shift+R — toggle recording (or Next in flow mode)
                     if (e.metaKey && e.shiftKey && e.key === 'r') {
                         e.preventDefault();
-                        if (!parsing && !transcribing) toggleRecording();
+                        if (flowMode) {
+                            if (recording) {
+                                handleFlowNext();
+                            } else if (!transcribing) {
+                                startRecording();
+                            }
+                        } else {
+                            if (!parsing && !transcribing) toggleRecording();
+                        }
+                        return;
+                    }
+                    // Cmd+Shift+F — toggle flow mode (auto-start recording when enabling)
+                    if (e.metaKey && e.shiftKey && (e.key === 'f' || e.key === 'F')) {
+                        e.preventDefault();
+                        setFlowMode(prev => {
+                            const next = !prev;
+                            if (next && !recording && !transcribing) {
+                                setTimeout(() => startRecording(), 100);
+                            }
+                            return next;
+                        });
                         return;
                     }
                     // Cmd+Shift+E — toggle export menu
@@ -2035,34 +2098,40 @@
                 }
                 window.addEventListener('keydown', handleGlobalKeyDown);
                 return () => window.removeEventListener('keydown', handleGlobalKeyDown);
-            }, [transcription, parsing, recording, transcribing]);
+            }, [transcription, parsing, recording, transcribing, flowMode]);
+
+            async function startRecording() {
+                setError(null);
+                try {
+                    const res = await fetch('/api/record/start', { method: 'POST' });
+                    const data = await res.json();
+                    if (!res.ok) throw new Error(data.error || 'Start recording failed');
+                    setRecording(true);
+                } catch (err) {
+                    setError(JSON.stringify({ message: 'Could not start recording', details: err.message }));
+                }
+            }
+
+            async function stopRecording() {
+                setRecording(false);
+                setTranscribing(true);
+                try {
+                    const res = await fetch('/api/record/stop', { method: 'POST' });
+                    const data = await res.json();
+                    if (!res.ok) throw new Error(data.error || 'Stop recording failed');
+                    setTranscription(prev => prev ? prev + ' ' + data.text : data.text);
+                } catch (err) {
+                    setError(JSON.stringify({ message: 'Recording failed', details: err.message }));
+                } finally {
+                    setTranscribing(false);
+                }
+            }
 
             async function toggleRecording() {
                 if (recording) {
-                    // Stop recording and transcribe
-                    setRecording(false);
-                    setTranscribing(true);
-                    try {
-                        const res = await fetch('/api/record/stop', { method: 'POST' });
-                        const data = await res.json();
-                        if (!res.ok) throw new Error(data.error || 'Stop recording failed');
-                        setTranscription(prev => prev ? prev + ' ' + data.text : data.text);
-                    } catch (err) {
-                        setError(JSON.stringify({ message: 'Recording failed', details: err.message }));
-                    } finally {
-                        setTranscribing(false);
-                    }
+                    stopRecording();
                 } else {
-                    // Start recording
-                    setError(null);
-                    try {
-                        const res = await fetch('/api/record/start', { method: 'POST' });
-                        const data = await res.json();
-                        if (!res.ok) throw new Error(data.error || 'Start recording failed');
-                        setRecording(true);
-                    } catch (err) {
-                        setError(JSON.stringify({ message: 'Could not start recording', details: err.message }));
-                    }
+                    startRecording();
                 }
             }
 
@@ -2512,43 +2581,121 @@
                             disabled={recording || transcribing}
                         />
                         <div className="input-actions">
-                            <span className="shortcut-hint">{recording ? 'Recording...' : '\u2318\u21E7R record \u00B7 \u2318\u21A9 parse \u00B7 \u2318\u232B clear'}</span>
-                            <div style={{ display: 'flex', gap: '0.5rem' }}>
-                                <button
-                                    onClick={toggleRecording}
-                                    disabled={transcribing}
-                                    className={recording ? '' : 'secondary'}
-                                    style={{
-                                        display: 'inline-flex',
-                                        alignItems: 'center',
-                                        gap: '0.4rem',
-                                        background: recording ? 'var(--error)' : undefined,
-                                        animation: recording ? 'pulse-record 1.5s ease-in-out infinite' : 'none',
-                                    }}
-                                >
-                                    {transcribing ? (
-                                        <><span className="loading"></span> Transcribing...</>
-                                    ) : recording ? (
-                                        <><svg width="14" height="14" viewBox="0 0 16 16" fill="currentColor" style={{ flexShrink: 0 }}><rect x="3" y="3" width="10" height="10" rx="2"/></svg> Stop</>
-                                    ) : (
-                                        <><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round" style={{ flexShrink: 0 }}><rect x="9" y="1" width="6" height="12" rx="3"/><path d="M5 10a7 7 0 0 0 14 0"/><line x1="12" y1="17" x2="12" y2="21"/><line x1="8" y1="21" x2="16" y2="21"/></svg> Record</>
-                                    )}
-                                </button>
-                                <button
-                                    onClick={handleParse}
-                                    disabled={!transcription.trim() || recording || transcribing}
-                                >
-                                    {parsing && parseQueue.length > 0 ? (
-                                        <><span className="loading"></span> Processing ({parseQueue.length} queued)</>
-                                    ) : parsing ? (
-                                        <><span className="loading"></span> Parsing...</>
-                                    ) : parseQueue.length > 0 ? (
-                                        `Parse Question (${parseQueue.length} in queue)`
-                                    ) : (
-                                        'Parse Question'
-                                    )}
-                                </button>
-                            </div>
+                            {flowMode ? (
+                                <>
+                                    <span className="shortcut-hint">
+                                        {recording ? 'Flow: Recording... \u2318\u21E7R next' : transcribing ? 'Flow: Processing...' : 'Flow: Idle'}
+                                    </span>
+                                    <div style={{ display: 'flex', gap: '0.5rem' }}>
+                                        {recording ? (
+                                            <>
+                                                <button
+                                                    onClick={handleFlowNext}
+                                                    style={{
+                                                        display: 'inline-flex',
+                                                        alignItems: 'center',
+                                                        gap: '0.4rem',
+                                                        animation: 'pulse-record 1.5s ease-in-out infinite',
+                                                    }}
+                                                >
+                                                    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round" style={{ flexShrink: 0 }}><polyline points="13 17 18 12 13 7"/><polyline points="6 17 11 12 6 7"/></svg>
+                                                    Next
+                                                </button>
+                                                <button
+                                                    onClick={handleFlowRedo}
+                                                    className="secondary"
+                                                    style={{ display: 'inline-flex', alignItems: 'center', gap: '0.4rem' }}
+                                                >
+                                                    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round" style={{ flexShrink: 0 }}><polyline points="1 4 1 10 7 10"/><path d="M3.51 15a9 9 0 1 0 2.13-9.36L1 10"/></svg>
+                                                    Redo
+                                                </button>
+                                            </>
+                                        ) : transcribing ? (
+                                            <button disabled style={{ display: 'inline-flex', alignItems: 'center', gap: '0.4rem' }}>
+                                                <span className="loading"></span> Processing...
+                                            </button>
+                                        ) : (
+                                            <button
+                                                onClick={startRecording}
+                                                style={{ display: 'inline-flex', alignItems: 'center', gap: '0.4rem' }}
+                                            >
+                                                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round" style={{ flexShrink: 0 }}><polygon points="5 3 19 12 5 21 5 3"/></svg>
+                                                Resume
+                                            </button>
+                                        )}
+                                        <button
+                                            onClick={handleFlowStop}
+                                            className="secondary"
+                                            style={{ display: 'inline-flex', alignItems: 'center', gap: '0.4rem' }}
+                                        >
+                                            Stop Flow
+                                        </button>
+                                    </div>
+                                </>
+                            ) : (
+                                <>
+                                    <span className="shortcut-hint">{recording ? 'Recording...' : '\u2318\u21E7R record \u00B7 \u2318\u21A9 parse \u00B7 \u2318\u232B clear'}</span>
+                                    <div style={{ display: 'flex', gap: '0.5rem' }}>
+                                        <button
+                                            onClick={toggleRecording}
+                                            disabled={transcribing}
+                                            className={recording ? '' : 'secondary'}
+                                            style={{
+                                                display: 'inline-flex',
+                                                alignItems: 'center',
+                                                gap: '0.4rem',
+                                                background: recording ? 'var(--error)' : undefined,
+                                                animation: recording ? 'pulse-record 1.5s ease-in-out infinite' : 'none',
+                                            }}
+                                        >
+                                            {transcribing ? (
+                                                <><span className="loading"></span> Transcribing...</>
+                                            ) : recording ? (
+                                                <><svg width="14" height="14" viewBox="0 0 16 16" fill="currentColor" style={{ flexShrink: 0 }}><rect x="3" y="3" width="10" height="10" rx="2"/></svg> Stop</>
+                                            ) : (
+                                                <><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round" style={{ flexShrink: 0 }}><rect x="9" y="1" width="6" height="12" rx="3"/><path d="M5 10a7 7 0 0 0 14 0"/><line x1="12" y1="17" x2="12" y2="21"/><line x1="8" y1="21" x2="16" y2="21"/></svg> Record</>
+                                            )}
+                                        </button>
+                                        <button
+                                            onClick={() => {
+                                                setFlowMode(prev => {
+                                                    const next = !prev;
+                                                    if (next && !recording && !transcribing) {
+                                                        setTimeout(() => startRecording(), 100);
+                                                    }
+                                                    return next;
+                                                });
+                                            }}
+                                            className="secondary"
+                                            title="Flow mode: single-button workflow (\u2318\u21E7F)"
+                                            style={{
+                                                display: 'inline-flex',
+                                                alignItems: 'center',
+                                                gap: '0.3rem',
+                                                fontSize: '0.8rem',
+                                                padding: '0.35rem 0.6rem',
+                                            }}
+                                        >
+                                            <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round" style={{ flexShrink: 0 }}><polyline points="13 17 18 12 13 7"/><polyline points="6 17 11 12 6 7"/></svg>
+                                            Flow
+                                        </button>
+                                        <button
+                                            onClick={handleParse}
+                                            disabled={!transcription.trim() || recording || transcribing}
+                                        >
+                                            {parsing && parseQueue.length > 0 ? (
+                                                <><span className="loading"></span> Processing ({parseQueue.length} queued)</>
+                                            ) : parsing ? (
+                                                <><span className="loading"></span> Parsing...</>
+                                            ) : parseQueue.length > 0 ? (
+                                                `Parse Question (${parseQueue.length} in queue)`
+                                            ) : (
+                                                'Parse Question'
+                                            )}
+                                        </button>
+                                    </div>
+                                </>
+                            )}
                         </div>
                         {error && (
                             <div className="error-message">
@@ -3318,7 +3465,7 @@
                                             <input
                                                 type="text"
                                                 value={Array.isArray(editingEntry.tags) ? editingEntry.tags.join(', ') : ''}
-                                                onChange={e => updateEditingEntry('tags', e.target.value.split(',').map(t => t.trim()).filter(Boolean))}
+                                                onChange={e => updateEditingEntry('tags', e.target.value.split(',').map(t => t.trim().replace(/\s+/g, '_')).filter(Boolean))}
                                             />
                                         </div>
 
