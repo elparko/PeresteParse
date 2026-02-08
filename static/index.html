@@ -1,5 +1,6 @@
 <!DOCTYPE html>
 <html lang="en">
+
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
@@ -16,7 +17,9 @@
     <script src="https://unpkg.com/@babel/standalone/babel.min.js"></script>
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;500;600&family=Outfit:wght@300;400;500;600&display=swap" rel="stylesheet">
+    <link
+        href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;500;600&family=Outfit:wght@300;400;500;600&display=swap"
+        rel="stylesheet">
     <style>
         * {
             margin: 0;
@@ -45,7 +48,9 @@
             line-height: 1.6;
         }
 
-        code, pre, .mono {
+        code,
+        pre,
+        .mono {
             font-family: 'JetBrains Mono', monospace;
         }
 
@@ -172,11 +177,14 @@
         }
 
         /* Force black text in all inputs and textareas */
-        input, textarea, select {
+        input,
+        textarea,
+        select {
             color: #000000 !important;
         }
 
-        input::placeholder, textarea::placeholder {
+        input::placeholder,
+        textarea::placeholder {
             color: #4a4a4a !important;
             opacity: 0.7;
         }
@@ -336,6 +344,7 @@
             0% {
                 background: rgba(190, 52, 85, 0.3);
             }
+
             100% {
                 background: transparent;
             }
@@ -480,7 +489,7 @@
             border-radius: 8px;
             padding: 1rem;
             min-width: 260px;
-            box-shadow: 0 4px 12px rgba(0,0,0,0.3);
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3);
         }
 
         .export-popup-sections {
@@ -578,12 +587,21 @@
         }
 
         @keyframes spin {
-            to { transform: rotate(360deg); }
+            to {
+                transform: rotate(360deg);
+            }
         }
 
         @keyframes pulse-record {
-            0%, 100% { box-shadow: 0 0 0 0 rgba(248, 113, 113, 0.6); }
-            50% { box-shadow: 0 0 0 12px rgba(248, 113, 113, 0); }
+
+            0%,
+            100% {
+                box-shadow: 0 0 0 0 rgba(248, 113, 113, 0.6);
+            }
+
+            50% {
+                box-shadow: 0 0 0 12px rgba(248, 113, 113, 0);
+            }
         }
 
         .record-btn:hover {
@@ -1152,8 +1170,13 @@
         }
 
         @keyframes progress-indeterminate {
-            0% { transform: translateX(-100%); }
-            100% { transform: translateX(350%); }
+            0% {
+                transform: translateX(-100%);
+            }
+
+            100% {
+                transform: translateX(350%);
+            }
         }
 
         .download-progress.complete {
@@ -1185,8 +1208,15 @@
         }
 
         @keyframes fadeIn {
-            from { opacity: 0; transform: translateX(-50%) translateY(10px); }
-            to { opacity: 1; transform: translateX(-50%) translateY(0); }
+            from {
+                opacity: 0;
+                transform: translateX(-50%) translateY(10px);
+            }
+
+            to {
+                opacity: 1;
+                transform: translateX(-50%) translateY(0);
+            }
         }
 
         .kbd {
@@ -1250,6 +1280,7 @@
         }
     </style>
 </head>
+
 <body>
     <div id="root"></div>
 
@@ -2005,9 +2036,29 @@
                                 startRecording();
                             }
                         } else {
-                            if (!parsing && !transcribing) toggleRecording();
+                            if (!parsing && !transcribing) {
+                                // Toggle recording: if recording, stop; if not, check permissions/start
+                                if (recording) stopRecording();
+                                else startRecording();
+                            }
                         }
                         return;
+                    }
+
+                    // Escape — cancel recording or exit flow mode
+                    if (e.key === 'Escape') {
+                        if (recording) {
+                            console.log('Cancelling recording via Escape');
+                            stopRecording();
+                            setTranscription('');
+                            showToast('Recording cancelled');
+                            return;
+                        }
+                        if (flowMode) {
+                            setFlowMode(false);
+                            showToast('Exited Flow Mode');
+                            return;
+                        }
                     }
                     // Cmd+Shift+F — toggle flow mode (auto-start recording when enabling)
                     if (e.metaKey && e.shiftKey && (e.key === 'f' || e.key === 'F')) {
@@ -2517,1049 +2568,1046 @@
 
             return (
                 <div style={{ display: 'flex', height: '100vh', overflow: 'hidden' }}>
-                <div style={{ flex: 1, overflow: 'auto' }}>
-                <div className="container">
-                    <div className="header-row">
-                        <div className="header-content">
-                            <img src="/plogo-icon.png" alt="Pereste Parse" className="logo" />
-                            <div className="header-text">
-                                <h1>Pereste Parse</h1>
-                                <p className="subtitle">Voice to flashcards</p>
+                    <div style={{ flex: 1, overflow: 'auto' }}>
+                        <div className="container">
+                            <div className="header-row">
+                                <div className="header-content">
+                                    <img src="/plogo-icon.png" alt="Pereste Parse" className="logo" />
+                                    <div className="header-text">
+                                        <h1>Pereste Parse</h1>
+                                        <p className="subtitle">Voice to flashcards</p>
+                                    </div>
+                                </div>
+                                <div style={{ display: 'flex', gap: '0.25rem' }}>
+                                    {settings?.debug_mode && (
+                                        <button className="settings-btn" onClick={() => setShowDebug(prev => !prev)} title="Debug Panel" style={{ opacity: showDebug ? 1 : 0.5, fontSize: '1.1rem' }}>
+                                            &#9776;
+                                        </button>
+                                    )}
+                                    <button className="settings-btn" onClick={() => setShowShortcuts(true)} title="Keyboard Shortcuts (?)">
+                                        ?
+                                    </button>
+                                    <button className="settings-btn" onClick={openSettings} title="Settings (\u2318,)">
+                                        ⚙
+                                    </button>
+                                </div>
                             </div>
-                        </div>
-                        <div style={{ display: 'flex', gap: '0.25rem' }}>
-                            {settings?.debug_mode && (
-                            <button className="settings-btn" onClick={() => setShowDebug(prev => !prev)} title="Debug Panel" style={{ opacity: showDebug ? 1 : 0.5, fontSize: '1.1rem' }}>
-                                &#9776;
-                            </button>
-                            )}
-                            <button className="settings-btn" onClick={() => setShowShortcuts(true)} title="Keyboard Shortcuts (?)">
-                                ?
-                            </button>
-                            <button className="settings-btn" onClick={openSettings} title="Settings (\u2318,)">
-                                ⚙
-                            </button>
-                        </div>
-                    </div>
 
 
-                    <div className="session-bar">
-                        <div className="input-group">
-                            <label>Section</label>
-                            <input
-                                type="text"
-                                list="sections-datalist"
-                                placeholder="e.g. Upper Limb, Thorax"
-                                value={section}
-                                onChange={e => setSection(e.target.value)}
-                            />
-                            <datalist id="sections-datalist">
-                                {uniqueSections.map(sec => (
-                                    <option key={sec} value={sec} />
-                                ))}
-                            </datalist>
-                        </div>
-                        <div className="input-group" style={{ maxWidth: '200px' }}>
-                            <label>Start Question #</label>
-                            <input
-                                type="number"
-                                placeholder="1"
-                                value={startNumber}
-                                onChange={e => setStartNumber(e.target.value)}
-                            />
-                        </div>
-                    </div>
+                            <div className="session-bar">
+                                <div className="input-group">
+                                    <label>Section</label>
+                                    <input
+                                        type="text"
+                                        list="sections-datalist"
+                                        placeholder="e.g. Upper Limb, Thorax"
+                                        value={section}
+                                        onChange={e => setSection(e.target.value)}
+                                    />
+                                    <datalist id="sections-datalist">
+                                        {uniqueSections.map(sec => (
+                                            <option key={sec} value={sec} />
+                                        ))}
+                                    </datalist>
+                                </div>
+                                <div className="input-group" style={{ maxWidth: '200px' }}>
+                                    <label>Start Question #</label>
+                                    <input
+                                        type="number"
+                                        placeholder="1"
+                                        value={startNumber}
+                                        onChange={e => setStartNumber(e.target.value)}
+                                    />
+                                </div>
+                            </div>
 
-                    <div className="input-zone">
-                        <label>Record or Paste Transcription</label>
-                        <textarea
-                            ref={textareaRef}
-                            value={transcription}
-                            onChange={e => setTranscription(e.target.value)}
-                            onKeyDown={handleKeyDown}
-                            placeholder={recording ? 'Recording... click mic to stop' : 'Paste your transcription here...'}
-                            disabled={recording || transcribing}
-                        />
-                        <div className="input-actions">
-                            {flowMode ? (
-                                <>
-                                    <span className="shortcut-hint">
-                                        {recording ? 'Flow: Recording... \u2318\u21E7R next' : transcribing ? 'Flow: Processing...' : 'Flow: Idle'}
-                                    </span>
-                                    <div style={{ display: 'flex', gap: '0.5rem' }}>
-                                        {recording ? (
-                                            <>
+                            <div className="input-zone">
+                                <label>Record or Paste Transcription</label>
+                                <textarea
+                                    ref={textareaRef}
+                                    value={transcription}
+                                    onChange={e => setTranscription(e.target.value)}
+                                    onKeyDown={handleKeyDown}
+                                    placeholder={recording ? 'Recording... click mic to stop' : 'Paste your transcription here...'}
+                                    disabled={recording || transcribing}
+                                />
+                                <div className="input-actions">
+                                    {flowMode ? (
+                                        <>
+                                            <span className="shortcut-hint">
+                                                {recording ? 'Flow: Recording... \u2318\u21E7R next' : transcribing ? 'Flow: Processing...' : 'Flow: Idle'}
+                                            </span>
+                                            <div style={{ display: 'flex', gap: '0.5rem' }}>
+                                                {recording ? (
+                                                    <>
+                                                        <button
+                                                            onClick={handleFlowNext}
+                                                            style={{
+                                                                display: 'inline-flex',
+                                                                alignItems: 'center',
+                                                                gap: '0.4rem',
+                                                                animation: 'pulse-record 1.5s ease-in-out infinite',
+                                                            }}
+                                                        >
+                                                            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round" style={{ flexShrink: 0 }}><polyline points="13 17 18 12 13 7" /><polyline points="6 17 11 12 6 7" /></svg>
+                                                            Next
+                                                        </button>
+                                                        <button
+                                                            onClick={handleFlowRedo}
+                                                            className="secondary"
+                                                            style={{ display: 'inline-flex', alignItems: 'center', gap: '0.4rem' }}
+                                                        >
+                                                            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round" style={{ flexShrink: 0 }}><polyline points="1 4 1 10 7 10" /><path d="M3.51 15a9 9 0 1 0 2.13-9.36L1 10" /></svg>
+                                                            Redo
+                                                        </button>
+                                                    </>
+                                                ) : transcribing ? (
+                                                    <button disabled style={{ display: 'inline-flex', alignItems: 'center', gap: '0.4rem' }}>
+                                                        <span className="loading"></span> Processing...
+                                                    </button>
+                                                ) : (
+                                                    <button
+                                                        onClick={startRecording}
+                                                        style={{ display: 'inline-flex', alignItems: 'center', gap: '0.4rem' }}
+                                                    >
+                                                        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round" style={{ flexShrink: 0 }}><polygon points="5 3 19 12 5 21 5 3" /></svg>
+                                                        Resume
+                                                    </button>
+                                                )}
                                                 <button
-                                                    onClick={handleFlowNext}
+                                                    onClick={handleFlowStop}
+                                                    className="secondary"
+                                                    style={{ display: 'inline-flex', alignItems: 'center', gap: '0.4rem' }}
+                                                >
+                                                    Stop Flow
+                                                </button>
+                                            </div>
+                                        </>
+                                    ) : (
+                                        <>
+                                            <span className="shortcut-hint">{recording ? 'Recording...' : '\u2318\u21E7R record \u00B7 \u2318\u21A9 parse \u00B7 \u2318\u232B clear'}</span>
+                                            <div style={{ display: 'flex', gap: '0.5rem' }}>
+                                                <button
+                                                    onClick={toggleRecording}
+                                                    disabled={transcribing}
+                                                    className={recording ? '' : 'secondary'}
                                                     style={{
                                                         display: 'inline-flex',
                                                         alignItems: 'center',
                                                         gap: '0.4rem',
-                                                        animation: 'pulse-record 1.5s ease-in-out infinite',
+                                                        background: recording ? 'var(--error)' : undefined,
+                                                        animation: recording ? 'pulse-record 1.5s ease-in-out infinite' : 'none',
                                                     }}
                                                 >
-                                                    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round" style={{ flexShrink: 0 }}><polyline points="13 17 18 12 13 7"/><polyline points="6 17 11 12 6 7"/></svg>
-                                                    Next
+                                                    {transcribing ? (
+                                                        <><span className="loading"></span> Transcribing...</>
+                                                    ) : recording ? (
+                                                        <><svg width="14" height="14" viewBox="0 0 16 16" fill="currentColor" style={{ flexShrink: 0 }}><rect x="3" y="3" width="10" height="10" rx="2" /></svg> Stop</>
+                                                    ) : (
+                                                        <><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round" style={{ flexShrink: 0 }}><rect x="9" y="1" width="6" height="12" rx="3" /><path d="M5 10a7 7 0 0 0 14 0" /><line x1="12" y1="17" x2="12" y2="21" /><line x1="8" y1="21" x2="16" y2="21" /></svg> Record</>
+                                                    )}
                                                 </button>
                                                 <button
-                                                    onClick={handleFlowRedo}
-                                                    className="secondary"
-                                                    style={{ display: 'inline-flex', alignItems: 'center', gap: '0.4rem' }}
-                                                >
-                                                    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round" style={{ flexShrink: 0 }}><polyline points="1 4 1 10 7 10"/><path d="M3.51 15a9 9 0 1 0 2.13-9.36L1 10"/></svg>
-                                                    Redo
-                                                </button>
-                                            </>
-                                        ) : transcribing ? (
-                                            <button disabled style={{ display: 'inline-flex', alignItems: 'center', gap: '0.4rem' }}>
-                                                <span className="loading"></span> Processing...
-                                            </button>
-                                        ) : (
-                                            <button
-                                                onClick={startRecording}
-                                                style={{ display: 'inline-flex', alignItems: 'center', gap: '0.4rem' }}
-                                            >
-                                                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round" style={{ flexShrink: 0 }}><polygon points="5 3 19 12 5 21 5 3"/></svg>
-                                                Resume
-                                            </button>
-                                        )}
-                                        <button
-                                            onClick={handleFlowStop}
-                                            className="secondary"
-                                            style={{ display: 'inline-flex', alignItems: 'center', gap: '0.4rem' }}
-                                        >
-                                            Stop Flow
-                                        </button>
-                                    </div>
-                                </>
-                            ) : (
-                                <>
-                                    <span className="shortcut-hint">{recording ? 'Recording...' : '\u2318\u21E7R record \u00B7 \u2318\u21A9 parse \u00B7 \u2318\u232B clear'}</span>
-                                    <div style={{ display: 'flex', gap: '0.5rem' }}>
-                                        <button
-                                            onClick={toggleRecording}
-                                            disabled={transcribing}
-                                            className={recording ? '' : 'secondary'}
-                                            style={{
-                                                display: 'inline-flex',
-                                                alignItems: 'center',
-                                                gap: '0.4rem',
-                                                background: recording ? 'var(--error)' : undefined,
-                                                animation: recording ? 'pulse-record 1.5s ease-in-out infinite' : 'none',
-                                            }}
-                                        >
-                                            {transcribing ? (
-                                                <><span className="loading"></span> Transcribing...</>
-                                            ) : recording ? (
-                                                <><svg width="14" height="14" viewBox="0 0 16 16" fill="currentColor" style={{ flexShrink: 0 }}><rect x="3" y="3" width="10" height="10" rx="2"/></svg> Stop</>
-                                            ) : (
-                                                <><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round" style={{ flexShrink: 0 }}><rect x="9" y="1" width="6" height="12" rx="3"/><path d="M5 10a7 7 0 0 0 14 0"/><line x1="12" y1="17" x2="12" y2="21"/><line x1="8" y1="21" x2="16" y2="21"/></svg> Record</>
-                                            )}
-                                        </button>
-                                        <button
-                                            onClick={() => {
-                                                setFlowMode(prev => {
-                                                    const next = !prev;
-                                                    if (next && !recording && !transcribing) {
-                                                        setTimeout(() => startRecording(), 100);
-                                                    }
-                                                    return next;
-                                                });
-                                            }}
-                                            className="secondary"
-                                            title="Flow mode: single-button workflow (\u2318\u21E7F)"
-                                            style={{
-                                                display: 'inline-flex',
-                                                alignItems: 'center',
-                                                gap: '0.3rem',
-                                                fontSize: '0.8rem',
-                                                padding: '0.35rem 0.6rem',
-                                            }}
-                                        >
-                                            <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round" style={{ flexShrink: 0 }}><polyline points="13 17 18 12 13 7"/><polyline points="6 17 11 12 6 7"/></svg>
-                                            Flow
-                                        </button>
-                                        <button
-                                            onClick={handleParse}
-                                            disabled={!transcription.trim() || recording || transcribing}
-                                        >
-                                            {parsing && parseQueue.length > 0 ? (
-                                                <><span className="loading"></span> Processing ({parseQueue.length} queued)</>
-                                            ) : parsing ? (
-                                                <><span className="loading"></span> Parsing...</>
-                                            ) : parseQueue.length > 0 ? (
-                                                `Parse Question (${parseQueue.length} in queue)`
-                                            ) : (
-                                                'Parse Question'
-                                            )}
-                                        </button>
-                                    </div>
-                                </>
-                            )}
-                        </div>
-                        {error && (
-                            <div className="error-message">
-                                <strong>Error:</strong> {(() => {
-                                    try {
-                                        const errorObj = JSON.parse(error);
-                                        return (
-                                            <div>
-                                                <div>{errorObj.message}</div>
-                                                {errorObj.details && <div style={{ marginTop: '0.5rem', fontSize: '0.85rem' }}><strong>Details:</strong> {errorObj.details}</div>}
-                                                {errorObj.raw_response && (
-                                                    <details style={{ marginTop: '0.5rem', fontSize: '0.85rem' }}>
-                                                        <summary style={{ cursor: 'pointer' }}>Show raw response</summary>
-                                                        <pre style={{ marginTop: '0.5rem', padding: '0.5rem', background: 'var(--bg-input)', borderRadius: '4px', overflow: 'auto', maxHeight: '200px' }}>
-                                                            {errorObj.raw_response}
-                                                        </pre>
-                                                    </details>
-                                                )}
-                                            </div>
-                                        );
-                                    } catch {
-                                        return error;
-                                    }
-                                })()}
-                            </div>
-                        )}
-
-                    </div>
-
-                    {entries.length > 0 && (
-                        <>
-                            <div className="stats-bar">
-                                <div className="stat-card">
-                                    <div className="stat-label">Total</div>
-                                    <div className="stat-value">{stats.total}</div>
-                                </div>
-                                <div className="stat-card correct">
-                                    <div className="stat-label">Correct</div>
-                                    <div className="stat-value">{stats.correct}</div>
-                                </div>
-                                <div className="stat-card incorrect">
-                                    <div className="stat-label">Incorrect</div>
-                                    <div className="stat-value">{stats.incorrect}</div>
-                                </div>
-                                <div className="stat-card">
-                                    <div className="stat-label">Score</div>
-                                    <div className="stat-value">{score}%</div>
-                                </div>
-                            </div>
-
-                            <div className="filter-bar">
-                                <div className="filter-buttons">
-                                    <button
-                                        className={`filter-btn ${filter === 'all' ? 'active' : ''}`}
-                                        onClick={() => setFilter('all')}
-                                    >
-                                        All ({stats.total})
-                                    </button>
-                                    <button
-                                        className={`filter-btn ${filter === 'correct' ? 'active' : ''}`}
-                                        onClick={() => setFilter('correct')}
-                                    >
-                                        Correct ({stats.correct})
-                                    </button>
-                                    <button
-                                        className={`filter-btn ${filter === 'incorrect' ? 'active' : ''}`}
-                                        onClick={() => setFilter('incorrect')}
-                                    >
-                                        Incorrect ({stats.incorrect})
-                                    </button>
-                                </div>
-                                <input
-                                    ref={searchRef}
-                                    type="text"
-                                    placeholder="Search entries..."
-                                    value={searchQuery}
-                                    onChange={e => setSearchQuery(e.target.value)}
-                                    style={{
-                                        background: 'var(--bg-input)',
-                                        border: '1px solid var(--border)',
-                                        borderRadius: '8px',
-                                        padding: '0.5rem 0.75rem',
-                                        color: 'var(--text-primary)',
-                                        fontSize: '0.9rem',
-                                        fontFamily: "'Outfit', sans-serif",
-                                        width: '200px',
-                                    }}
-                                />
-                                <div style={{ position: 'relative' }} ref={exportMenuRef}>
-                                    <button
-                                        className="secondary"
-                                        onClick={() => setShowExportMenu(prev => !prev)}
-                                        style={{ whiteSpace: 'nowrap' }}
-                                    >
-                                        Export
-                                    </button>
-                                    {showExportMenu && (() => {
-                                        const sectionNames = Object.keys(groupedEntries);
-                                        const allSelected = sectionNames.length > 0 && sectionNames.every(s => exportSections.has(s));
-                                        const getExportEntries = () => {
-                                            return filteredEntries.filter(e => {
-                                                const sec = e.section || 'Uncategorized';
-                                                return exportSections.has(sec);
-                                            });
-                                        };
-                                        const exportCount = getExportEntries().length;
-                                        return (
-                                            <div className="export-popup">
-                                                <div style={{ fontWeight: 600, fontSize: '0.85rem', color: 'var(--text-secondary)', textTransform: 'uppercase', letterSpacing: '0.05em', marginBottom: '0.5rem' }}>Sections</div>
-                                                <button
-                                                    className="export-popup-toggle"
                                                     onClick={() => {
-                                                        if (allSelected) {
-                                                            setExportSections(new Set());
-                                                        } else {
-                                                            setExportSections(new Set(sectionNames));
-                                                        }
+                                                        setFlowMode(prev => {
+                                                            const next = !prev;
+                                                            if (next && !recording && !transcribing) {
+                                                                setTimeout(() => startRecording(), 100);
+                                                            }
+                                                            return next;
+                                                        });
+                                                    }}
+                                                    className="secondary"
+                                                    title="Flow mode: single-button workflow (\u2318\u21E7F)"
+                                                    style={{
+                                                        display: 'inline-flex',
+                                                        alignItems: 'center',
+                                                        gap: '0.3rem',
+                                                        fontSize: '0.8rem',
+                                                        padding: '0.35rem 0.6rem',
                                                     }}
                                                 >
-                                                    {allSelected ? 'Select None' : 'Select All'}
+                                                    <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round" style={{ flexShrink: 0 }}><polyline points="13 17 18 12 13 7" /><polyline points="6 17 11 12 6 7" /></svg>
+                                                    Flow
                                                 </button>
-                                                <div className="export-popup-sections">
-                                                    {sectionNames.map(sec => (
-                                                        <label key={sec} className="export-popup-section-item">
-                                                            <input
-                                                                type="checkbox"
-                                                                checked={exportSections.has(sec)}
-                                                                onChange={() => {
-                                                                    setExportSections(prev => {
-                                                                        const next = new Set(prev);
-                                                                        if (next.has(sec)) next.delete(sec);
-                                                                        else next.add(sec);
-                                                                        return next;
-                                                                    });
-                                                                }}
-                                                            />
-                                                            {sec}
-                                                        </label>
-                                                    ))}
-                                                </div>
-                                                <hr className="export-popup-divider" />
-                                                <div style={{ fontSize: '0.8rem', color: 'var(--text-secondary)', marginBottom: '0.5rem' }}>
-                                                    {exportCount} {exportCount === 1 ? 'entry' : 'entries'} selected
-                                                </div>
-                                                <div className="export-popup-actions">
-                                                    <button onClick={() => { exportAnki(getExportEntries()); setShowExportMenu(false); }} disabled={exportCount === 0}>
-                                                        Export Anki (.apkg)
-                                                    </button>
-                                                    <button className="secondary" onClick={() => { exportCSV(getExportEntries()); setShowExportMenu(false); }} disabled={exportCount === 0}>
-                                                        Export CSV
-                                                    </button>
-                                                </div>
+                                                <button
+                                                    onClick={handleParse}
+                                                    disabled={!transcription.trim() || recording || transcribing}
+                                                >
+                                                    {parsing && parseQueue.length > 0 ? (
+                                                        <><span className="loading"></span> Processing ({parseQueue.length} queued)</>
+                                                    ) : parsing ? (
+                                                        <><span className="loading"></span> Parsing...</>
+                                                    ) : parseQueue.length > 0 ? (
+                                                        `Parse Question (${parseQueue.length} in queue)`
+                                                    ) : (
+                                                        'Parse Question'
+                                                    )}
+                                                </button>
                                             </div>
-                                        );
-                                    })()}
+                                        </>
+                                    )}
                                 </div>
-                            </div>
-
-                            {Object.keys(groupedEntries).map(sectionName => {
-                                const sectionEntries = groupedEntries[sectionName];
-                                const isCollapsed = collapsedSections.has(sectionName);
-                                const sectionStats = sectionEntries.reduce((acc, e) => {
-                                    acc.total++;
-                                    if (e.result === 'correct') acc.correct++;
-                                    if (e.result === 'incorrect') acc.incorrect++;
-                                    return acc;
-                                }, { total: 0, correct: 0, incorrect: 0 });
-
-                                return (
-                                    <div key={sectionName} className="section-accordion">
-                                        <div
-                                            className={`section-header ${isCollapsed ? 'collapsed' : ''}`}
-                                            onClick={() => toggleSection(sectionName)}
-                                        >
-                                            <div style={{ display: 'flex', alignItems: 'center', gap: '1rem' }}>
-                                                <span className={`chevron ${isCollapsed ? '' : 'expanded'}`}>▶</span>
-                                                <span className="section-title">{sectionName}</span>
-                                            </div>
-                                            <div className="section-stats">
-                                                <span className="section-stat">Total: {sectionStats.total}</span>
-                                                <span className="section-stat correct">✓ {sectionStats.correct}</span>
-                                                <span className="section-stat incorrect">✗ {sectionStats.incorrect}</span>
-                                            </div>
-                                        </div>
-
-                                        {!isCollapsed && (
-                                            <div className="section-content">
-                                                <div className="table-wrapper">
-                                                    <table>
-                                                        <thead>
-                                                            <tr>
-                                                                <th style={{ width: '60px' }}>#</th>
-                                                                <th style={{ width: '100px' }}>Result</th>
-                                                                <th style={{ width: '30%' }}>Front</th>
-                                                                <th style={{ width: '30%' }}>Back</th>
-                                                                <th style={{ width: '25%' }}>Notes</th>
-                                                                <th style={{ width: '150px' }}>Actions</th>
-                                                            </tr>
-                                                        </thead>
-                                                        <tbody>
-                                                            {sectionEntries.map(entry => (
-                                                                <tr key={entry.id} className={entry.isNew ? 'new-entry' : ''}>
-                                                                    <td className="mono">{entry.number || '—'}</td>
-                                                                    <td>
-                                                                        <span
-                                                                            className={`result-badge ${entry.result}`}
-                                                                            onClick={() => toggleResult(entry.id)}
-                                                                            title="Click to toggle"
-                                                                        >
-                                                                            {entry.result === 'correct' ? '✓ correct' : '✗ incorrect'}
-                                                                        </span>
-                                                                    </td>
-                                                                    <td>
-                                                                        <div
-                                                                            className={`cell-content expandable ${
-                                                                                expandedCells.has(`${entry.id}-front`) ? 'expanded' : ''
-                                                                            }`}
-                                                                            onClick={(e) => toggleCellExpand(entry.id, 'front', e)}
-                                                                        >
-                                                                            {entry.front}
-                                                                        </div>
-                                                                    </td>
-                                                                    <td>
-                                                                        <div
-                                                                            className={`cell-content expandable ${
-                                                                                expandedCells.has(`${entry.id}-back`) ? 'expanded' : ''
-                                                                            }`}
-                                                                            onClick={(e) => toggleCellExpand(entry.id, 'back', e)}
-                                                                        >
-                                                                            {entry.back}
-                                                                        </div>
-                                                                    </td>
-                                                                    <td>
-                                                                        <div
-                                                                            className={`cell-content expandable ${
-                                                                                expandedCells.has(`${entry.id}-notes`) ? 'expanded' : ''
-                                                                            }`}
-                                                                            onClick={(e) => toggleCellExpand(entry.id, 'notes', e)}
-                                                                            dangerouslySetInnerHTML={{
-                                                                                __html: entry.notes ? formatContent(entry.notes) : '—'
-                                                                            }}
-                                                                        />
-                                                                    </td>
-                                                                    <td>
-                                                                        <div style={{ display: 'flex', gap: '0.5rem' }}>
-                                                                            <button
-                                                                                className="edit-btn"
-                                                                                onClick={() => editEntry(entry)}
-                                                                            >
-                                                                                Edit
-                                                                            </button>
-                                                                            <button
-                                                                                className="delete-btn"
-                                                                                onClick={() => deleteEntry(entry.id)}
-                                                                            >
-                                                                                Delete
-                                                                            </button>
-                                                                        </div>
-                                                                    </td>
-                                                                </tr>
-                                                            ))}
-                                                        </tbody>
-                                                    </table>
-                                                </div>
-                                            </div>
-                                        )}
+                                {error && (
+                                    <div className="error-message">
+                                        <strong>Error:</strong> {(() => {
+                                            try {
+                                                const errorObj = JSON.parse(error);
+                                                return (
+                                                    <div>
+                                                        <div>{errorObj.message}</div>
+                                                        {errorObj.details && <div style={{ marginTop: '0.5rem', fontSize: '0.85rem' }}><strong>Details:</strong> {errorObj.details}</div>}
+                                                        {errorObj.raw_response && (
+                                                            <details style={{ marginTop: '0.5rem', fontSize: '0.85rem' }}>
+                                                                <summary style={{ cursor: 'pointer' }}>Show raw response</summary>
+                                                                <pre style={{ marginTop: '0.5rem', padding: '0.5rem', background: 'var(--bg-input)', borderRadius: '4px', overflow: 'auto', maxHeight: '200px' }}>
+                                                                    {errorObj.raw_response}
+                                                                </pre>
+                                                            </details>
+                                                        )}
+                                                    </div>
+                                                );
+                                            } catch {
+                                                return error;
+                                            }
+                                        })()}
                                     </div>
-                                );
-                            })}
-                            <div ref={tableEndRef}></div>
-                        </>
-                    )}
-
-                    {entries.length === 0 && (
-                        <div className="empty-state">
-                            <div className="empty-state-icon">📝</div>
-                            {health.status === 'ok' && (
-                                <>
-                                    <div className="empty-state-title">Get started in 3 steps</div>
-                                    <ol className="getting-started-steps">
-                                        <li><span className="step-num">1</span> Enter a section name above (e.g. Upper Limb)</li>
-                                        <li><span className="step-num">2</span> Record (<span className="kbd">{'\u2318\u21E7R'}</span>) or paste your transcription</li>
-                                        <li><span className="step-num">3</span> Press <span className="kbd">Enter</span> to parse</li>
-                                    </ol>
-                                    <div className="empty-state-text">
-                                        Press <span className="kbd">?</span> to see all keyboard shortcuts
-                                    </div>
-                                </>
-                            )}
-                            {health.status === 'downloading' && (
-                                <>
-                                    <div className="empty-state-title">Model downloading...</div>
-                                    <div className="empty-state-text">
-                                        You can start once the download is complete.
-                                    </div>
-                                </>
-                            )}
-                            {health.status === 'error' && !showSetup && (
-                                <>
-                                    <div className="empty-state-title">Setup needed</div>
-                                    <div className="empty-state-text">
-                                        Open Settings to configure your parsing backend.
-                                    </div>
-                                </>
-                            )}
-                        </div>
-                    )}
-
-                    {showSetup && (
-                        <div className="setup-overlay">
-                            <div className="setup-card">
-                                {setupStep === 'choose' && (
-                                    <>
-                                        <div className="setup-title">Welcome to Pereste Parse</div>
-                                        <div className="setup-subtitle">Choose how you'd like to parse your transcriptions.</div>
-                                        <div
-                                            className={`setup-option ${setupBackend === 'cloud' ? 'selected' : ''}`}
-                                            onClick={() => setSetupBackend('cloud')}
-                                        >
-                                            <div className="setup-option-title">Cloud (recommended)</div>
-                                            <div className="setup-option-desc">Use Anthropic API. Requires API key, no download needed.</div>
-                                        </div>
-                                        <div
-                                            className={`setup-option ${setupBackend === 'local' ? 'selected' : ''}`}
-                                            onClick={() => setSetupBackend('local')}
-                                        >
-                                            <div className="setup-option-title">Local</div>
-                                            <div className="setup-option-desc">Run models on your Mac. Downloads ~2.5GB model.</div>
-                                        </div>
-                                        <div className="setup-actions">
-                                            <button onClick={() => setSetupStep('configure')}>Next</button>
-                                        </div>
-                                    </>
                                 )}
 
-                                {setupStep === 'configure' && setupBackend === 'cloud' && (
-                                    <>
-                                        <div className="setup-title">Configure Cloud Backend</div>
-                                        <div className="setup-subtitle">Enter your Anthropic API key to get started.</div>
-                                        <div className="settings-form">
-                                            <div className="form-group">
-                                                <label>API Key</label>
-                                                <input
-                                                    type="password"
-                                                    placeholder="sk-ant-..."
-                                                    value={setupApiKey}
-                                                    onChange={e => setSetupApiKey(e.target.value)}
-                                                />
-                                            </div>
-                                            <div className="form-group">
-                                                <label>Model</label>
-                                                <div className="model-cards">
-                                                    <div
-                                                        className={`model-card ${setupModel === 'claude-sonnet-4-5-20250929' ? 'selected' : ''}`}
-                                                        onClick={() => setSetupModel('claude-sonnet-4-5-20250929')}
-                                                    >
-                                                        <div className="model-card-name">Claude Sonnet 4.5</div>
-                                                        <div className="model-card-desc">Best balance of speed and quality</div>
+                            </div>
+
+                            {entries.length > 0 && (
+                                <>
+                                    <div className="stats-bar">
+                                        <div className="stat-card">
+                                            <div className="stat-label">Total</div>
+                                            <div className="stat-value">{stats.total}</div>
+                                        </div>
+                                        <div className="stat-card correct">
+                                            <div className="stat-label">Correct</div>
+                                            <div className="stat-value">{stats.correct}</div>
+                                        </div>
+                                        <div className="stat-card incorrect">
+                                            <div className="stat-label">Incorrect</div>
+                                            <div className="stat-value">{stats.incorrect}</div>
+                                        </div>
+                                        <div className="stat-card">
+                                            <div className="stat-label">Score</div>
+                                            <div className="stat-value">{score}%</div>
+                                        </div>
+                                    </div>
+
+                                    <div className="filter-bar">
+                                        <div className="filter-buttons">
+                                            <button
+                                                className={`filter-btn ${filter === 'all' ? 'active' : ''}`}
+                                                onClick={() => setFilter('all')}
+                                            >
+                                                All ({stats.total})
+                                            </button>
+                                            <button
+                                                className={`filter-btn ${filter === 'correct' ? 'active' : ''}`}
+                                                onClick={() => setFilter('correct')}
+                                            >
+                                                Correct ({stats.correct})
+                                            </button>
+                                            <button
+                                                className={`filter-btn ${filter === 'incorrect' ? 'active' : ''}`}
+                                                onClick={() => setFilter('incorrect')}
+                                            >
+                                                Incorrect ({stats.incorrect})
+                                            </button>
+                                        </div>
+                                        <input
+                                            ref={searchRef}
+                                            type="text"
+                                            placeholder="Search entries..."
+                                            value={searchQuery}
+                                            onChange={e => setSearchQuery(e.target.value)}
+                                            style={{
+                                                background: 'var(--bg-input)',
+                                                border: '1px solid var(--border)',
+                                                borderRadius: '8px',
+                                                padding: '0.5rem 0.75rem',
+                                                color: 'var(--text-primary)',
+                                                fontSize: '0.9rem',
+                                                fontFamily: "'Outfit', sans-serif",
+                                                width: '200px',
+                                            }}
+                                        />
+                                        <div style={{ position: 'relative' }} ref={exportMenuRef}>
+                                            <button
+                                                className="secondary"
+                                                onClick={() => setShowExportMenu(prev => !prev)}
+                                                style={{ whiteSpace: 'nowrap' }}
+                                            >
+                                                Export
+                                            </button>
+                                            {showExportMenu && (() => {
+                                                const sectionNames = Object.keys(groupedEntries);
+                                                const allSelected = sectionNames.length > 0 && sectionNames.every(s => exportSections.has(s));
+                                                const getExportEntries = () => {
+                                                    return filteredEntries.filter(e => {
+                                                        const sec = e.section || 'Uncategorized';
+                                                        return exportSections.has(sec);
+                                                    });
+                                                };
+                                                const exportCount = getExportEntries().length;
+                                                return (
+                                                    <div className="export-popup">
+                                                        <div style={{ fontWeight: 600, fontSize: '0.85rem', color: 'var(--text-secondary)', textTransform: 'uppercase', letterSpacing: '0.05em', marginBottom: '0.5rem' }}>Sections</div>
+                                                        <button
+                                                            className="export-popup-toggle"
+                                                            onClick={() => {
+                                                                if (allSelected) {
+                                                                    setExportSections(new Set());
+                                                                } else {
+                                                                    setExportSections(new Set(sectionNames));
+                                                                }
+                                                            }}
+                                                        >
+                                                            {allSelected ? 'Select None' : 'Select All'}
+                                                        </button>
+                                                        <div className="export-popup-sections">
+                                                            {sectionNames.map(sec => (
+                                                                <label key={sec} className="export-popup-section-item">
+                                                                    <input
+                                                                        type="checkbox"
+                                                                        checked={exportSections.has(sec)}
+                                                                        onChange={() => {
+                                                                            setExportSections(prev => {
+                                                                                const next = new Set(prev);
+                                                                                if (next.has(sec)) next.delete(sec);
+                                                                                else next.add(sec);
+                                                                                return next;
+                                                                            });
+                                                                        }}
+                                                                    />
+                                                                    {sec}
+                                                                </label>
+                                                            ))}
+                                                        </div>
+                                                        <hr className="export-popup-divider" />
+                                                        <div style={{ fontSize: '0.8rem', color: 'var(--text-secondary)', marginBottom: '0.5rem' }}>
+                                                            {exportCount} {exportCount === 1 ? 'entry' : 'entries'} selected
+                                                        </div>
+                                                        <div className="export-popup-actions">
+                                                            <button onClick={() => { exportAnki(getExportEntries()); setShowExportMenu(false); }} disabled={exportCount === 0}>
+                                                                Export Anki (.apkg)
+                                                            </button>
+                                                            <button className="secondary" onClick={() => { exportCSV(getExportEntries()); setShowExportMenu(false); }} disabled={exportCount === 0}>
+                                                                Export CSV
+                                                            </button>
+                                                        </div>
                                                     </div>
-                                                    <div
-                                                        className={`model-card ${setupModel === 'claude-haiku-4-5-20251001' ? 'selected' : ''}`}
-                                                        onClick={() => setSetupModel('claude-haiku-4-5-20251001')}
-                                                    >
-                                                        <div className="model-card-name">Claude Haiku 4.5</div>
-                                                        <div className="model-card-desc">Fastest and most affordable</div>
+                                                );
+                                            })()}
+                                        </div>
+                                    </div>
+
+                                    {Object.keys(groupedEntries).map(sectionName => {
+                                        const sectionEntries = groupedEntries[sectionName];
+                                        const isCollapsed = collapsedSections.has(sectionName);
+                                        const sectionStats = sectionEntries.reduce((acc, e) => {
+                                            acc.total++;
+                                            if (e.result === 'correct') acc.correct++;
+                                            if (e.result === 'incorrect') acc.incorrect++;
+                                            return acc;
+                                        }, { total: 0, correct: 0, incorrect: 0 });
+
+                                        return (
+                                            <div key={sectionName} className="section-accordion">
+                                                <div
+                                                    className={`section-header ${isCollapsed ? 'collapsed' : ''}`}
+                                                    onClick={() => toggleSection(sectionName)}
+                                                >
+                                                    <div style={{ display: 'flex', alignItems: 'center', gap: '1rem' }}>
+                                                        <span className={`chevron ${isCollapsed ? '' : 'expanded'}`}>▶</span>
+                                                        <span className="section-title">{sectionName}</span>
+                                                    </div>
+                                                    <div className="section-stats">
+                                                        <span className="section-stat">Total: {sectionStats.total}</span>
+                                                        <span className="section-stat correct">✓ {sectionStats.correct}</span>
+                                                        <span className="section-stat incorrect">✗ {sectionStats.incorrect}</span>
                                                     </div>
                                                 </div>
-                                            </div>
-                                            <div className="form-group">
-                                                <button
-                                                    className="secondary"
-                                                    onClick={setupTestConnection}
-                                                    disabled={setupTesting || !setupApiKey}
-                                                >
-                                                    {setupTesting ? <><span className="loading"></span> Testing...</> : 'Test Connection'}
-                                                </button>
-                                                {setupTestResult && (
-                                                    <div className={`test-result ${setupTestResult.ok ? 'success' : 'failure'}`}>
-                                                        {setupTestResult.ok ? '✓' : '✗'} {setupTestResult.message}
+
+                                                {!isCollapsed && (
+                                                    <div className="section-content">
+                                                        <div className="table-wrapper">
+                                                            <table>
+                                                                <thead>
+                                                                    <tr>
+                                                                        <th style={{ width: '60px' }}>#</th>
+                                                                        <th style={{ width: '100px' }}>Result</th>
+                                                                        <th style={{ width: '30%' }}>Front</th>
+                                                                        <th style={{ width: '30%' }}>Back</th>
+                                                                        <th style={{ width: '25%' }}>Notes</th>
+                                                                        <th style={{ width: '150px' }}>Actions</th>
+                                                                    </tr>
+                                                                </thead>
+                                                                <tbody>
+                                                                    {sectionEntries.map(entry => (
+                                                                        <tr key={entry.id} className={entry.isNew ? 'new-entry' : ''}>
+                                                                            <td className="mono">{entry.number || '—'}</td>
+                                                                            <td>
+                                                                                <span
+                                                                                    className={`result-badge ${entry.result}`}
+                                                                                    onClick={() => toggleResult(entry.id)}
+                                                                                    title="Click to toggle"
+                                                                                >
+                                                                                    {entry.result === 'correct' ? '✓ correct' : '✗ incorrect'}
+                                                                                </span>
+                                                                            </td>
+                                                                            <td>
+                                                                                <div
+                                                                                    className={`cell-content expandable ${expandedCells.has(`${entry.id}-front`) ? 'expanded' : ''
+                                                                                        }`}
+                                                                                    onClick={(e) => toggleCellExpand(entry.id, 'front', e)}
+                                                                                >
+                                                                                    {entry.front}
+                                                                                </div>
+                                                                            </td>
+                                                                            <td>
+                                                                                <div
+                                                                                    className={`cell-content expandable ${expandedCells.has(`${entry.id}-back`) ? 'expanded' : ''
+                                                                                        }`}
+                                                                                    onClick={(e) => toggleCellExpand(entry.id, 'back', e)}
+                                                                                >
+                                                                                    {entry.back}
+                                                                                </div>
+                                                                            </td>
+                                                                            <td>
+                                                                                <div
+                                                                                    className={`cell-content expandable ${expandedCells.has(`${entry.id}-notes`) ? 'expanded' : ''
+                                                                                        }`}
+                                                                                    onClick={(e) => toggleCellExpand(entry.id, 'notes', e)}
+                                                                                    dangerouslySetInnerHTML={{
+                                                                                        __html: entry.notes ? formatContent(entry.notes) : '—'
+                                                                                    }}
+                                                                                />
+                                                                            </td>
+                                                                            <td>
+                                                                                <div style={{ display: 'flex', gap: '0.5rem' }}>
+                                                                                    <button
+                                                                                        className="edit-btn"
+                                                                                        onClick={() => editEntry(entry)}
+                                                                                    >
+                                                                                        Edit
+                                                                                    </button>
+                                                                                    <button
+                                                                                        className="delete-btn"
+                                                                                        onClick={() => deleteEntry(entry.id)}
+                                                                                    >
+                                                                                        Delete
+                                                                                    </button>
+                                                                                </div>
+                                                                            </td>
+                                                                        </tr>
+                                                                    ))}
+                                                                </tbody>
+                                                            </table>
+                                                        </div>
                                                     </div>
                                                 )}
                                             </div>
-                                        </div>
-                                        <div className="setup-actions" style={{ gap: '0.75rem' }}>
-                                            <button className="secondary" onClick={() => { setSetupStep('choose'); setSetupTestResult(null); }}>Back</button>
-                                            <button onClick={completeSetup} disabled={!setupTestResult?.ok}>Complete Setup</button>
-                                        </div>
-                                    </>
-                                )}
+                                        );
+                                    })}
+                                    <div ref={tableEndRef}></div>
+                                </>
+                            )}
 
-                                {setupStep === 'configure' && setupBackend === 'local' && (
-                                    <>
-                                        <div className="setup-title">Configure Local Backend</div>
-                                        <div className="setup-subtitle">Choose a model to download. Larger models are more accurate but need more RAM.</div>
-                                        <div className="settings-form">
-                                            <div className="form-group">
-                                                <label>Select Model</label>
-                                                <div className="model-cards">
-                                                    {MODEL_PRESETS.map(preset => {
-                                                        const status = modelStatuses[preset.id];
-                                                        const isDownloading = downloadStatus === 'downloading' && setupSelectedModel?.id === preset.id;
-                                                        const isDownloaded = status?.downloaded;
-
-                                                        return (
-                                                            <div
-                                                                key={preset.id}
-                                                                className={`model-card ${setupSelectedModel?.id === preset.id ? 'selected' : ''}`}
-                                                                onClick={() => setSetupSelectedModel(preset)}
-                                                            >
-                                                                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: '0.25rem' }}>
-                                                                    <div className="model-card-name">
-                                                                        {preset.name} {preset.recommended && '⭐'}
-                                                                    </div>
-                                                                    {isDownloading && (
-                                                                        <span className="loading" style={{ width: '14px', height: '14px', borderWidth: '2px' }}></span>
-                                                                    )}
-                                                                    {!isDownloading && isDownloaded && (
-                                                                        <span style={{ fontSize: '0.85rem', color: 'var(--success)', fontWeight: 600 }}>✓</span>
-                                                                    )}
-                                                                    {!isDownloading && !isDownloaded && (
-                                                                        <span style={{ fontSize: '0.75rem', color: 'var(--text-secondary)' }}>{preset.size}</span>
-                                                                    )}
-                                                                </div>
-                                                                <div className="model-card-desc">
-                                                                    {preset.description}
-                                                                </div>
-                                                            </div>
-                                                        );
-                                                    })}
-                                                </div>
+                            {entries.length === 0 && (
+                                <div className="empty-state">
+                                    <div className="empty-state-icon">📝</div>
+                                    {health.status === 'ok' && (
+                                        <>
+                                            <div className="empty-state-title">Get started in 3 steps</div>
+                                            <ol className="getting-started-steps">
+                                                <li><span className="step-num">1</span> Enter a section name above (e.g. Upper Limb)</li>
+                                                <li><span className="step-num">2</span> Record (<span className="kbd">{'\u2318\u21E7R'}</span>) or paste your transcription</li>
+                                                <li><span className="step-num">3</span> Press <span className="kbd">Enter</span> to parse</li>
+                                            </ol>
+                                            <div className="empty-state-text">
+                                                Press <span className="kbd">?</span> to see all keyboard shortcuts
                                             </div>
-                                            {!downloadStatus && (
-                                                <button onClick={setupStartDownload}>
-                                                    Download {setupSelectedModel?.name || 'Model'} ({setupSelectedModel?.size || ''})
-                                                </button>
-                                            )}
-                                            {downloadStatus === 'downloading' && (
-                                                <div className="download-progress">
-                                                    <div className="download-label">
-                                                        <span className="loading"></span>
-                                                        Downloading model... This may take a few minutes.
-                                                    </div>
-                                                    <div className="progress-bar-track">
-                                                        <div className="progress-bar-fill"></div>
-                                                    </div>
-                                                </div>
-                                            )}
-                                            {downloadStatus === 'ready' && (
-                                                <>
-                                                    <div className="download-progress complete">
-                                                        ✓ Model downloaded successfully!
-                                                    </div>
-                                                    <button className="secondary" onClick={setupDeleteModel} style={{ fontSize: '0.85rem' }}>Uninstall Model</button>
-                                                </>
-                                            )}
-                                            {downloadStatus === 'error' && (
-                                                <>
-                                                    <div className="download-progress error">
-                                                        ✗ Download failed. Check your internet connection.
-                                                    </div>
-                                                    <div style={{ display: 'flex', gap: '0.5rem' }}>
-                                                        <button onClick={() => { setDownloadStatus(null); }}>Retry Download</button>
-                                                        <button className="secondary" onClick={setupDeleteModel} style={{ fontSize: '0.85rem' }}>Uninstall Model</button>
-                                                    </div>
-                                                </>
-                                            )}
-                                        </div>
-                                        <div className="setup-actions" style={{ gap: '0.75rem' }}>
-                                            <button className="secondary" onClick={() => { setSetupStep('choose'); setDownloadStatus(null); }}>Back</button>
-                                            <button onClick={completeSetup} disabled={downloadStatus !== 'ready'}>Complete Setup</button>
-                                        </div>
-                                    </>
-                                )}
-                            </div>
-                        </div>
-                    )}
-
-                    {showSettings && settingsForm && (
-                        <div className="modal-overlay" onClick={() => setShowSettings(false)}>
-                            <div className="modal-content" onClick={e => e.stopPropagation()} style={{ maxWidth: '500px' }}>
-                                <div className="modal-header">
-                                    <h2 className="modal-title">Settings</h2>
-                                    <button className="modal-close" onClick={() => setShowSettings(false)}>×</button>
+                                        </>
+                                    )}
+                                    {health.status === 'downloading' && (
+                                        <>
+                                            <div className="empty-state-title">Model downloading...</div>
+                                            <div className="empty-state-text">
+                                                You can start once the download is complete.
+                                            </div>
+                                        </>
+                                    )}
+                                    {health.status === 'error' && !showSetup && (
+                                        <>
+                                            <div className="empty-state-title">Setup needed</div>
+                                            <div className="empty-state-text">
+                                                Open Settings to configure your parsing backend.
+                                            </div>
+                                        </>
+                                    )}
                                 </div>
-                                <div className="modal-body">
-                                    <div className="settings-form">
-                                        <div className="form-group">
-                                            <label>Parsing Backend</label>
-                                            <div className="backend-toggle">
-                                                <button
-                                                    className={settingsForm.parsing_backend === 'local' ? 'active' : 'secondary'}
-                                                    onClick={() => setSettingsForm(prev => ({ ...prev, parsing_backend: 'local' }))}
-                                                >
-                                                    Local
-                                                </button>
-                                                <button
-                                                    className={settingsForm.parsing_backend === 'cloud' ? 'active' : 'secondary'}
-                                                    onClick={() => setSettingsForm(prev => ({ ...prev, parsing_backend: 'cloud' }))}
-                                                >
-                                                    Cloud
-                                                </button>
-                                            </div>
-                                        </div>
+                            )}
 
-                                        <div className="form-group">
-                                            <label>Default Result</label>
-                                            <div className="backend-toggle">
-                                                <button
-                                                    className={settingsForm.default_result === 'incorrect' ? 'active' : 'secondary'}
-                                                    onClick={() => setSettingsForm(prev => ({ ...prev, default_result: 'incorrect' }))}
-                                                    style={{ background: settingsForm.default_result === 'incorrect' ? 'var(--error)' : undefined }}
-                                                >
-                                                    Incorrect
-                                                </button>
-                                                <button
-                                                    className={settingsForm.default_result === 'correct' ? 'active' : 'secondary'}
-                                                    onClick={() => setSettingsForm(prev => ({ ...prev, default_result: 'correct' }))}
-                                                    style={{ background: settingsForm.default_result === 'correct' ? 'var(--success)' : undefined }}
-                                                >
-                                                    Correct
-                                                </button>
-                                            </div>
-                                        </div>
-
-                                        <div className="form-group">
-                                            <label>Debug Mode</label>
-                                            <div className="backend-toggle">
-                                                <button
-                                                    className={!settingsForm.debug_mode ? 'active' : 'secondary'}
-                                                    onClick={() => setSettingsForm(prev => ({ ...prev, debug_mode: false }))}
-                                                >
-                                                    Off
-                                                </button>
-                                                <button
-                                                    className={settingsForm.debug_mode ? 'active' : 'secondary'}
-                                                    onClick={() => setSettingsForm(prev => ({ ...prev, debug_mode: true }))}
-                                                >
-                                                    On
-                                                </button>
-                                            </div>
-                                        </div>
-
-                                        {settingsForm.parsing_backend === 'cloud' && (
+                            {showSetup && (
+                                <div className="setup-overlay">
+                                    <div className="setup-card">
+                                        {setupStep === 'choose' && (
                                             <>
-                                                <div className="form-group">
-                                                    <label>API Key {settings?.api_key ? `(current: ${settings.api_key})` : ''}</label>
-                                                    <input
-                                                        type="password"
-                                                        placeholder="sk-ant-..."
-                                                        value={settingsForm.api_key}
-                                                        onChange={e => setSettingsForm(prev => ({ ...prev, api_key: e.target.value }))}
-                                                    />
+                                                <div className="setup-title">Welcome to Pereste Parse</div>
+                                                <div className="setup-subtitle">Choose how you'd like to parse your transcriptions.</div>
+                                                <div
+                                                    className={`setup-option ${setupBackend === 'cloud' ? 'selected' : ''}`}
+                                                    onClick={() => setSetupBackend('cloud')}
+                                                >
+                                                    <div className="setup-option-title">Cloud (recommended)</div>
+                                                    <div className="setup-option-desc">Use Anthropic API. Requires API key, no download needed.</div>
                                                 </div>
-                                                <div className="form-group">
-                                                    <label>Model</label>
-                                                    <div className="model-cards">
-                                                        <div
-                                                            className={`model-card ${settingsForm.cloud_model === 'claude-sonnet-4-5-20250929' ? 'selected' : ''}`}
-                                                            onClick={() => setSettingsForm(prev => ({ ...prev, cloud_model: 'claude-sonnet-4-5-20250929' }))}
-                                                        >
-                                                            <div className="model-card-name">Claude Sonnet 4.5</div>
-                                                            <div className="model-card-desc">Best balance of speed and quality</div>
-                                                        </div>
-                                                        <div
-                                                            className={`model-card ${settingsForm.cloud_model === 'claude-haiku-4-5-20251001' ? 'selected' : ''}`}
-                                                            onClick={() => setSettingsForm(prev => ({ ...prev, cloud_model: 'claude-haiku-4-5-20251001' }))}
-                                                        >
-                                                            <div className="model-card-name">Claude Haiku 4.5</div>
-                                                            <div className="model-card-desc">Fastest and most affordable</div>
+                                                <div
+                                                    className={`setup-option ${setupBackend === 'local' ? 'selected' : ''}`}
+                                                    onClick={() => setSetupBackend('local')}
+                                                >
+                                                    <div className="setup-option-title">Local</div>
+                                                    <div className="setup-option-desc">Run models on your Mac. Downloads ~2.5GB model.</div>
+                                                </div>
+                                                <div className="setup-actions">
+                                                    <button onClick={() => setSetupStep('configure')}>Next</button>
+                                                </div>
+                                            </>
+                                        )}
+
+                                        {setupStep === 'configure' && setupBackend === 'cloud' && (
+                                            <>
+                                                <div className="setup-title">Configure Cloud Backend</div>
+                                                <div className="setup-subtitle">Enter your Anthropic API key to get started.</div>
+                                                <div className="settings-form">
+                                                    <div className="form-group">
+                                                        <label>API Key</label>
+                                                        <input
+                                                            type="password"
+                                                            placeholder="sk-ant-..."
+                                                            value={setupApiKey}
+                                                            onChange={e => setSetupApiKey(e.target.value)}
+                                                        />
+                                                    </div>
+                                                    <div className="form-group">
+                                                        <label>Model</label>
+                                                        <div className="model-cards">
+                                                            <div
+                                                                className={`model-card ${setupModel === 'claude-sonnet-4-5-20250929' ? 'selected' : ''}`}
+                                                                onClick={() => setSetupModel('claude-sonnet-4-5-20250929')}
+                                                            >
+                                                                <div className="model-card-name">Claude Sonnet 4.5</div>
+                                                                <div className="model-card-desc">Best balance of speed and quality</div>
+                                                            </div>
+                                                            <div
+                                                                className={`model-card ${setupModel === 'claude-haiku-4-5-20251001' ? 'selected' : ''}`}
+                                                                onClick={() => setSetupModel('claude-haiku-4-5-20251001')}
+                                                            >
+                                                                <div className="model-card-name">Claude Haiku 4.5</div>
+                                                                <div className="model-card-desc">Fastest and most affordable</div>
+                                                            </div>
                                                         </div>
                                                     </div>
+                                                    <div className="form-group">
+                                                        <button
+                                                            className="secondary"
+                                                            onClick={setupTestConnection}
+                                                            disabled={setupTesting || !setupApiKey}
+                                                        >
+                                                            {setupTesting ? <><span className="loading"></span> Testing...</> : 'Test Connection'}
+                                                        </button>
+                                                        {setupTestResult && (
+                                                            <div className={`test-result ${setupTestResult.ok ? 'success' : 'failure'}`}>
+                                                                {setupTestResult.ok ? '✓' : '✗'} {setupTestResult.message}
+                                                            </div>
+                                                        )}
+                                                    </div>
                                                 </div>
-                                                <div className="form-group">
-                                                    <button
-                                                        className="secondary"
-                                                        onClick={testConnection}
-                                                        disabled={testingConnection}
-                                                    >
-                                                        {testingConnection ? <><span className="loading"></span> Testing...</> : 'Test Connection'}
-                                                    </button>
-                                                    {testResult && (
-                                                        <div className={`test-result ${testResult.ok ? 'success' : 'failure'}`}>
-                                                            {testResult.ok ? '✓' : '✗'} {testResult.message}
+                                                <div className="setup-actions" style={{ gap: '0.75rem' }}>
+                                                    <button className="secondary" onClick={() => { setSetupStep('choose'); setSetupTestResult(null); }}>Back</button>
+                                                    <button onClick={completeSetup} disabled={!setupTestResult?.ok}>Complete Setup</button>
+                                                </div>
+                                            </>
+                                        )}
+
+                                        {setupStep === 'configure' && setupBackend === 'local' && (
+                                            <>
+                                                <div className="setup-title">Configure Local Backend</div>
+                                                <div className="setup-subtitle">Choose a model to download. Larger models are more accurate but need more RAM.</div>
+                                                <div className="settings-form">
+                                                    <div className="form-group">
+                                                        <label>Select Model</label>
+                                                        <div className="model-cards">
+                                                            {MODEL_PRESETS.map(preset => {
+                                                                const status = modelStatuses[preset.id];
+                                                                const isDownloading = downloadStatus === 'downloading' && setupSelectedModel?.id === preset.id;
+                                                                const isDownloaded = status?.downloaded;
+
+                                                                return (
+                                                                    <div
+                                                                        key={preset.id}
+                                                                        className={`model-card ${setupSelectedModel?.id === preset.id ? 'selected' : ''}`}
+                                                                        onClick={() => setSetupSelectedModel(preset)}
+                                                                    >
+                                                                        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: '0.25rem' }}>
+                                                                            <div className="model-card-name">
+                                                                                {preset.name} {preset.recommended && '⭐'}
+                                                                            </div>
+                                                                            {isDownloading && (
+                                                                                <span className="loading" style={{ width: '14px', height: '14px', borderWidth: '2px' }}></span>
+                                                                            )}
+                                                                            {!isDownloading && isDownloaded && (
+                                                                                <span style={{ fontSize: '0.85rem', color: 'var(--success)', fontWeight: 600 }}>✓</span>
+                                                                            )}
+                                                                            {!isDownloading && !isDownloaded && (
+                                                                                <span style={{ fontSize: '0.75rem', color: 'var(--text-secondary)' }}>{preset.size}</span>
+                                                                            )}
+                                                                        </div>
+                                                                        <div className="model-card-desc">
+                                                                            {preset.description}
+                                                                        </div>
+                                                                    </div>
+                                                                );
+                                                            })}
+                                                        </div>
+                                                    </div>
+                                                    {!downloadStatus && (
+                                                        <button onClick={setupStartDownload}>
+                                                            Download {setupSelectedModel?.name || 'Model'} ({setupSelectedModel?.size || ''})
+                                                        </button>
+                                                    )}
+                                                    {downloadStatus === 'downloading' && (
+                                                        <div className="download-progress">
+                                                            <div className="download-label">
+                                                                <span className="loading"></span>
+                                                                Downloading model... This may take a few minutes.
+                                                            </div>
+                                                            <div className="progress-bar-track">
+                                                                <div className="progress-bar-fill"></div>
+                                                            </div>
                                                         </div>
                                                     )}
+                                                    {downloadStatus === 'ready' && (
+                                                        <>
+                                                            <div className="download-progress complete">
+                                                                ✓ Model downloaded successfully!
+                                                            </div>
+                                                            <button className="secondary" onClick={setupDeleteModel} style={{ fontSize: '0.85rem' }}>Uninstall Model</button>
+                                                        </>
+                                                    )}
+                                                    {downloadStatus === 'error' && (
+                                                        <>
+                                                            <div className="download-progress error">
+                                                                ✗ Download failed. Check your internet connection.
+                                                            </div>
+                                                            <div style={{ display: 'flex', gap: '0.5rem' }}>
+                                                                <button onClick={() => { setDownloadStatus(null); }}>Retry Download</button>
+                                                                <button className="secondary" onClick={setupDeleteModel} style={{ fontSize: '0.85rem' }}>Uninstall Model</button>
+                                                            </div>
+                                                        </>
+                                                    )}
+                                                </div>
+                                                <div className="setup-actions" style={{ gap: '0.75rem' }}>
+                                                    <button className="secondary" onClick={() => { setSetupStep('choose'); setDownloadStatus(null); }}>Back</button>
+                                                    <button onClick={completeSetup} disabled={downloadStatus !== 'ready'}>Complete Setup</button>
                                                 </div>
                                             </>
                                         )}
-
-                                        {settingsForm.parsing_backend === 'local' ? (
-                                            <>
-                                                <div style={{ borderTop: '1px solid var(--border)', paddingTop: '1rem', marginTop: '0.5rem' }}>
-                                                    <label style={{ fontSize: '0.95rem', fontWeight: 600, color: 'var(--text-primary)' }}>Local Model Settings</label>
-                                                </div>
-                                                {renderLocalModelFields()}
-                                            </>
-                                        ) : (
-                                            <div>
-                                                <div
-                                                    style={{ cursor: 'pointer', display: 'flex', alignItems: 'center', gap: '0.5rem', color: 'var(--text-secondary)', fontSize: '0.9rem', borderTop: '1px solid var(--border)', paddingTop: '1rem', marginTop: '0.5rem' }}
-                                                    onClick={() => setShowAdvanced(prev => !prev)}
-                                                >
-                                                    <span style={{ transition: 'transform 0.2s', transform: showAdvanced ? 'rotate(90deg)' : 'rotate(0deg)', fontSize: '0.8rem' }}>&#9654;</span>
-                                                    Advanced (Local Model)
-                                                </div>
-                                                {showAdvanced && (
-                                                    <div style={{ marginTop: '1rem', display: 'flex', flexDirection: 'column', gap: '1.25rem' }}>
-                                                        {renderLocalModelFields()}
-                                                    </div>
-                                                )}
-                                            </div>
-                                        )}
-
-                                        <div style={{ borderTop: '1px solid var(--border)', paddingTop: '1rem', marginTop: '0.5rem' }}>
-                                            <label style={{ fontSize: '0.95rem', fontWeight: 600, color: 'var(--text-primary)', marginBottom: '0.5rem', display: 'block' }}>Data</label>
-                                            <input
-                                                type="file"
-                                                accept=".csv"
-                                                style={{ display: 'none' }}
-                                                id="csv-import-input-settings"
-                                                onChange={async (e) => {
-                                                    const file = e.target.files[0];
-                                                    if (!file) return;
-
-                                                    try {
-                                                        const formData = new FormData();
-                                                        formData.append('file', file);
-
-                                                        const res = await fetch('/api/import-csv', {
-                                                            method: 'POST',
-                                                            body: formData
-                                                        });
-
-                                                        const data = await res.json();
-                                                        if (res.ok && data.success) {
-                                                            if (confirm(`Import ${data.count} entries? This will add to your existing data.`)) {
-                                                                setEntries(prev => [...prev, ...data.entries]);
-                                                                showToast(`Imported ${data.count} entries`);
-                                                                setShowSettings(false);
-                                                            }
-                                                        } else {
-                                                            alert('Import failed: ' + (data.error || 'Unknown error'));
-                                                        }
-                                                    } catch (err) {
-                                                        alert('Import failed: ' + err.message);
-                                                    }
-                                                    e.target.value = '';
-                                                }}
-                                            />
-                                            <div style={{ display: 'flex', gap: '0.5rem' }}>
-                                                <button
-                                                    className="secondary"
-                                                    style={{ fontSize: '0.85rem', padding: '0.5rem 1rem' }}
-                                                    onClick={() => document.getElementById('csv-import-input-settings').click()}
-                                                >
-                                                    Import CSV Backup
-                                                </button>
-                                                <button
-                                                    className="danger"
-                                                    style={{ fontSize: '0.85rem', padding: '0.5rem 1rem' }}
-                                                    onClick={() => {
-                                                        clearAll();
-                                                        setShowSettings(false);
-                                                    }}
-                                                >
-                                                    Clear All Entries
-                                                </button>
-                                            </div>
-                                        </div>
                                     </div>
-                                </div>
-                                <div className="modal-actions">
-                                    <button className="secondary" onClick={() => setShowSettings(false)}>Cancel</button>
-                                    <button onClick={saveSettings}>Save</button>
-                                </div>
-                            </div>
-                        </div>
-                    )}
-
-                    {editingEntry && (
-                        <div className="modal-overlay" onClick={() => setEditingEntry(null)}>
-                            <div className="modal-content" onClick={e => e.stopPropagation()}>
-                                <div className="modal-header">
-                                    <h2 className="modal-title">Edit Entry</h2>
-                                    <button className="modal-close" onClick={() => setEditingEntry(null)}>×</button>
-                                </div>
-
-                                <div className="modal-body">
-                                    <div className="anki-card" onClick={flipCard}>
-                                        {showingFront ? (
-                                            <>
-                                                <div className="anki-card-label">Front</div>
-                                                <div className="anki-card-content formatted-content" dangerouslySetInnerHTML={{ __html: formatContent(editingEntry.front) }} />
-                                                <div className="anki-card-hint">Click to flip</div>
-                                            </>
-                                        ) : (
-                                            <>
-                                                <div className="anki-card-label">Back</div>
-                                                <div className="anki-card-content formatted-content" dangerouslySetInnerHTML={{ __html: formatContent(editingEntry.back) }} />
-                                                <div className="anki-card-hint">Click to flip</div>
-                                            </>
-                                        )}
-                                    </div>
-
-                                    <div className="edit-form">
-                                        <div className="form-group">
-                                            <label>Result</label>
-                                            <div className="result-toggle">
-                                                <button
-                                                    className={editingEntry.result === 'correct' ? 'active' : 'secondary'}
-                                                    onClick={() => updateEditingEntry('result', 'correct')}
-                                                >
-                                                    ✓ Correct
-                                                </button>
-                                                <button
-                                                    className={editingEntry.result === 'incorrect' ? 'active' : 'secondary'}
-                                                    onClick={() => updateEditingEntry('result', 'incorrect')}
-                                                >
-                                                    ✗ Incorrect
-                                                </button>
-                                            </div>
-                                        </div>
-
-                                        <div className="form-group">
-                                            <label>Question Number</label>
-                                            <input
-                                                type="number"
-                                                value={editingEntry.number || ''}
-                                                onChange={e => updateEditingEntry('number', e.target.value ? parseInt(e.target.value) : null)}
-                                            />
-                                        </div>
-
-                                        <div className="form-group">
-                                            <label>Section</label>
-                                            <input
-                                                type="text"
-                                                list="sections-datalist-modal"
-                                                placeholder="e.g. Thorax, Upper Limb, Head and Neck"
-                                                value={editingEntry.section || ''}
-                                                onChange={e => updateEditingEntry('section', e.target.value)}
-                                            />
-                                            <datalist id="sections-datalist-modal">
-                                                {uniqueSections.map(sec => (
-                                                    <option key={sec} value={sec} />
-                                                ))}
-                                            </datalist>
-                                        </div>
-
-                                        <div className="form-group">
-                                            <label>Front (Question)</label>
-                                            <textarea
-                                                value={editingEntry.front || ''}
-                                                onChange={e => updateEditingEntry('front', e.target.value)}
-                                            />
-                                        </div>
-
-                                        <div className="form-group">
-                                            <label>Back (Answer)</label>
-                                            <textarea
-                                                value={editingEntry.back || ''}
-                                                onChange={e => updateEditingEntry('back', e.target.value)}
-                                            />
-                                        </div>
-
-                                        <div className="form-group">
-                                            <label>Tags (comma-separated)</label>
-                                            <input
-                                                type="text"
-                                                value={Array.isArray(editingEntry.tags) ? editingEntry.tags.join(', ') : ''}
-                                                onChange={e => updateEditingEntry('tags', e.target.value.split(',').map(t => t.trim().replace(/\s+/g, '_')).filter(Boolean))}
-                                            />
-                                        </div>
-
-                                        <div className="form-group">
-                                            <label>Notes</label>
-                                            <textarea
-                                                value={editingEntry.notes || ''}
-                                                onChange={e => updateEditingEntry('notes', e.target.value)}
-                                            />
-                                        </div>
-                                    </div>
-                                </div>
-
-                                <div className="modal-actions">
-                                    <button className="secondary" onClick={() => setEditingEntry(null)}>Cancel</button>
-                                    <button onClick={saveEdit}>Save Changes</button>
-                                </div>
-                            </div>
-                        </div>
-                    )}
-                </div>
-                </div>
-
-                {showDebug && settings?.debug_mode && (
-                    <div style={{
-                        width: '400px',
-                        minWidth: '400px',
-                        borderLeft: '1px solid var(--border)',
-                        background: 'var(--bg-card)',
-                        display: 'flex',
-                        flexDirection: 'column',
-                        overflow: 'hidden',
-                    }}>
-                        <div style={{
-                            padding: '1rem',
-                            borderBottom: '1px solid var(--border)',
-                            display: 'flex',
-                            alignItems: 'center',
-                            justifyContent: 'space-between',
-                        }}>
-                            <strong style={{ fontSize: '0.9rem' }}>Debug Log</strong>
-                            <div style={{ display: 'flex', gap: '0.5rem', alignItems: 'center' }}>
-                                <span style={{ fontSize: '0.75rem', color: 'var(--text-secondary)' }}>{debugLog.length} entries</span>
-                                {debugLog.length > 0 && (
-                                    <button className="secondary" onClick={() => setDebugLog([])} style={{ fontSize: '0.75rem', padding: '0.2rem 0.5rem' }}>Clear</button>
-                                )}
-                                <button className="secondary" onClick={() => setShowDebug(false)} style={{ fontSize: '0.75rem', padding: '0.2rem 0.5rem' }}>×</button>
-                            </div>
-                        </div>
-                        <div style={{ flex: 1, overflow: 'auto', fontFamily: "'JetBrains Mono', monospace", fontSize: '0.78rem' }}>
-                            {debugLog.length === 0 && (
-                                <div style={{ padding: '2rem 1rem', textAlign: 'center', color: 'var(--text-secondary)' }}>
-                                    Parse a question to see debug output here.
                                 </div>
                             )}
-                            {[...debugLog].reverse().map((log, i) => (
-                                <div key={i} style={{ padding: '0.75rem 1rem', borderBottom: '1px solid var(--border)' }}>
-                                    <div style={{ color: 'var(--text-secondary)', marginBottom: '0.5rem', fontSize: '0.72rem' }}>
-                                        {log.timestamp} &middot; {log.backend} &middot; {log.model}{log.attempt ? ` &middot; attempt ${log.attempt}` : ''}
+
+                            {showSettings && settingsForm && (
+                                <div className="modal-overlay" onClick={() => setShowSettings(false)}>
+                                    <div className="modal-content" onClick={e => e.stopPropagation()} style={{ maxWidth: '500px' }}>
+                                        <div className="modal-header">
+                                            <h2 className="modal-title">Settings</h2>
+                                            <button className="modal-close" onClick={() => setShowSettings(false)}>×</button>
+                                        </div>
+                                        <div className="modal-body">
+                                            <div className="settings-form">
+                                                <div className="form-group">
+                                                    <label>Parsing Backend</label>
+                                                    <div className="backend-toggle">
+                                                        <button
+                                                            className={settingsForm.parsing_backend === 'local' ? 'active' : 'secondary'}
+                                                            onClick={() => setSettingsForm(prev => ({ ...prev, parsing_backend: 'local' }))}
+                                                        >
+                                                            Local
+                                                        </button>
+                                                        <button
+                                                            className={settingsForm.parsing_backend === 'cloud' ? 'active' : 'secondary'}
+                                                            onClick={() => setSettingsForm(prev => ({ ...prev, parsing_backend: 'cloud' }))}
+                                                        >
+                                                            Cloud
+                                                        </button>
+                                                    </div>
+                                                </div>
+
+                                                <div className="form-group">
+                                                    <label>Default Result</label>
+                                                    <div className="backend-toggle">
+                                                        <button
+                                                            className={settingsForm.default_result === 'incorrect' ? 'active' : 'secondary'}
+                                                            onClick={() => setSettingsForm(prev => ({ ...prev, default_result: 'incorrect' }))}
+                                                            style={{ background: settingsForm.default_result === 'incorrect' ? 'var(--error)' : undefined }}
+                                                        >
+                                                            Incorrect
+                                                        </button>
+                                                        <button
+                                                            className={settingsForm.default_result === 'correct' ? 'active' : 'secondary'}
+                                                            onClick={() => setSettingsForm(prev => ({ ...prev, default_result: 'correct' }))}
+                                                            style={{ background: settingsForm.default_result === 'correct' ? 'var(--success)' : undefined }}
+                                                        >
+                                                            Correct
+                                                        </button>
+                                                    </div>
+                                                </div>
+
+                                                <div className="form-group">
+                                                    <label>Debug Mode</label>
+                                                    <div className="backend-toggle">
+                                                        <button
+                                                            className={!settingsForm.debug_mode ? 'active' : 'secondary'}
+                                                            onClick={() => setSettingsForm(prev => ({ ...prev, debug_mode: false }))}
+                                                        >
+                                                            Off
+                                                        </button>
+                                                        <button
+                                                            className={settingsForm.debug_mode ? 'active' : 'secondary'}
+                                                            onClick={() => setSettingsForm(prev => ({ ...prev, debug_mode: true }))}
+                                                        >
+                                                            On
+                                                        </button>
+                                                    </div>
+                                                </div>
+
+                                                {settingsForm.parsing_backend === 'cloud' && (
+                                                    <>
+                                                        <div className="form-group">
+                                                            <label>API Key {settings?.api_key ? `(current: ${settings.api_key})` : ''}</label>
+                                                            <input
+                                                                type="password"
+                                                                placeholder="sk-ant-..."
+                                                                value={settingsForm.api_key}
+                                                                onChange={e => setSettingsForm(prev => ({ ...prev, api_key: e.target.value }))}
+                                                            />
+                                                        </div>
+                                                        <div className="form-group">
+                                                            <label>Model</label>
+                                                            <div className="model-cards">
+                                                                <div
+                                                                    className={`model-card ${settingsForm.cloud_model === 'claude-sonnet-4-5-20250929' ? 'selected' : ''}`}
+                                                                    onClick={() => setSettingsForm(prev => ({ ...prev, cloud_model: 'claude-sonnet-4-5-20250929' }))}
+                                                                >
+                                                                    <div className="model-card-name">Claude Sonnet 4.5</div>
+                                                                    <div className="model-card-desc">Best balance of speed and quality</div>
+                                                                </div>
+                                                                <div
+                                                                    className={`model-card ${settingsForm.cloud_model === 'claude-haiku-4-5-20251001' ? 'selected' : ''}`}
+                                                                    onClick={() => setSettingsForm(prev => ({ ...prev, cloud_model: 'claude-haiku-4-5-20251001' }))}
+                                                                >
+                                                                    <div className="model-card-name">Claude Haiku 4.5</div>
+                                                                    <div className="model-card-desc">Fastest and most affordable</div>
+                                                                </div>
+                                                            </div>
+                                                        </div>
+                                                        <div className="form-group">
+                                                            <button
+                                                                className="secondary"
+                                                                onClick={testConnection}
+                                                                disabled={testingConnection}
+                                                            >
+                                                                {testingConnection ? <><span className="loading"></span> Testing...</> : 'Test Connection'}
+                                                            </button>
+                                                            {testResult && (
+                                                                <div className={`test-result ${testResult.ok ? 'success' : 'failure'}`}>
+                                                                    {testResult.ok ? '✓' : '✗'} {testResult.message}
+                                                                </div>
+                                                            )}
+                                                        </div>
+                                                    </>
+                                                )}
+
+                                                {settingsForm.parsing_backend === 'local' ? (
+                                                    <>
+                                                        <div style={{ borderTop: '1px solid var(--border)', paddingTop: '1rem', marginTop: '0.5rem' }}>
+                                                            <label style={{ fontSize: '0.95rem', fontWeight: 600, color: 'var(--text-primary)' }}>Local Model Settings</label>
+                                                        </div>
+                                                        {renderLocalModelFields()}
+                                                    </>
+                                                ) : (
+                                                    <div>
+                                                        <div
+                                                            style={{ cursor: 'pointer', display: 'flex', alignItems: 'center', gap: '0.5rem', color: 'var(--text-secondary)', fontSize: '0.9rem', borderTop: '1px solid var(--border)', paddingTop: '1rem', marginTop: '0.5rem' }}
+                                                            onClick={() => setShowAdvanced(prev => !prev)}
+                                                        >
+                                                            <span style={{ transition: 'transform 0.2s', transform: showAdvanced ? 'rotate(90deg)' : 'rotate(0deg)', fontSize: '0.8rem' }}>&#9654;</span>
+                                                            Advanced (Local Model)
+                                                        </div>
+                                                        {showAdvanced && (
+                                                            <div style={{ marginTop: '1rem', display: 'flex', flexDirection: 'column', gap: '1.25rem' }}>
+                                                                {renderLocalModelFields()}
+                                                            </div>
+                                                        )}
+                                                    </div>
+                                                )}
+
+                                                <div style={{ borderTop: '1px solid var(--border)', paddingTop: '1rem', marginTop: '0.5rem' }}>
+                                                    <label style={{ fontSize: '0.95rem', fontWeight: 600, color: 'var(--text-primary)', marginBottom: '0.5rem', display: 'block' }}>Data</label>
+                                                    <input
+                                                        type="file"
+                                                        accept=".csv"
+                                                        style={{ display: 'none' }}
+                                                        id="csv-import-input-settings"
+                                                        onChange={async (e) => {
+                                                            const file = e.target.files[0];
+                                                            if (!file) return;
+
+                                                            try {
+                                                                const formData = new FormData();
+                                                                formData.append('file', file);
+
+                                                                const res = await fetch('/api/import-csv', {
+                                                                    method: 'POST',
+                                                                    body: formData
+                                                                });
+
+                                                                const data = await res.json();
+                                                                if (res.ok && data.success) {
+                                                                    if (confirm(`Import ${data.count} entries? This will add to your existing data.`)) {
+                                                                        setEntries(prev => [...prev, ...data.entries]);
+                                                                        showToast(`Imported ${data.count} entries`);
+                                                                        setShowSettings(false);
+                                                                    }
+                                                                } else {
+                                                                    alert('Import failed: ' + (data.error || 'Unknown error'));
+                                                                }
+                                                            } catch (err) {
+                                                                alert('Import failed: ' + err.message);
+                                                            }
+                                                            e.target.value = '';
+                                                        }}
+                                                    />
+                                                    <div style={{ display: 'flex', gap: '0.5rem' }}>
+                                                        <button
+                                                            className="secondary"
+                                                            style={{ fontSize: '0.85rem', padding: '0.5rem 1rem' }}
+                                                            onClick={() => document.getElementById('csv-import-input-settings').click()}
+                                                        >
+                                                            Import CSV Backup
+                                                        </button>
+                                                        <button
+                                                            className="danger"
+                                                            style={{ fontSize: '0.85rem', padding: '0.5rem 1rem' }}
+                                                            onClick={() => {
+                                                                clearAll();
+                                                                setShowSettings(false);
+                                                            }}
+                                                        >
+                                                            Clear All Entries
+                                                        </button>
+                                                    </div>
+                                                </div>
+                                            </div>
+                                        </div>
+                                        <div className="modal-actions">
+                                            <button className="secondary" onClick={() => setShowSettings(false)}>Cancel</button>
+                                            <button onClick={saveSettings}>Save</button>
+                                        </div>
                                     </div>
-                                    <div style={{ marginBottom: '0.25rem', color: 'var(--accent)', fontWeight: 600 }}>INPUT</div>
-                                    <pre style={{ whiteSpace: 'pre-wrap', wordBreak: 'break-word', margin: '0 0 0.75rem 0', color: 'var(--text-primary)', lineHeight: 1.4 }}>{log.input}</pre>
-                                    <div style={{ marginBottom: '0.25rem', color: 'var(--success)', fontWeight: 600 }}>RAW OUTPUT</div>
-                                    <pre style={{ whiteSpace: 'pre-wrap', wordBreak: 'break-word', margin: 0, color: 'var(--text-primary)', lineHeight: 1.4 }}>{log.raw_output}</pre>
                                 </div>
-                            ))}
+                            )}
+
+                            {editingEntry && (
+                                <div className="modal-overlay" onClick={() => setEditingEntry(null)}>
+                                    <div className="modal-content" onClick={e => e.stopPropagation()}>
+                                        <div className="modal-header">
+                                            <h2 className="modal-title">Edit Entry</h2>
+                                            <button className="modal-close" onClick={() => setEditingEntry(null)}>×</button>
+                                        </div>
+
+                                        <div className="modal-body">
+                                            <div className="anki-card" onClick={flipCard}>
+                                                {showingFront ? (
+                                                    <>
+                                                        <div className="anki-card-label">Front</div>
+                                                        <div className="anki-card-content formatted-content" dangerouslySetInnerHTML={{ __html: formatContent(editingEntry.front) }} />
+                                                        <div className="anki-card-hint">Click to flip</div>
+                                                    </>
+                                                ) : (
+                                                    <>
+                                                        <div className="anki-card-label">Back</div>
+                                                        <div className="anki-card-content formatted-content" dangerouslySetInnerHTML={{ __html: formatContent(editingEntry.back) }} />
+                                                        <div className="anki-card-hint">Click to flip</div>
+                                                    </>
+                                                )}
+                                            </div>
+
+                                            <div className="edit-form">
+                                                <div className="form-group">
+                                                    <label>Result</label>
+                                                    <div className="result-toggle">
+                                                        <button
+                                                            className={editingEntry.result === 'correct' ? 'active' : 'secondary'}
+                                                            onClick={() => updateEditingEntry('result', 'correct')}
+                                                        >
+                                                            ✓ Correct
+                                                        </button>
+                                                        <button
+                                                            className={editingEntry.result === 'incorrect' ? 'active' : 'secondary'}
+                                                            onClick={() => updateEditingEntry('result', 'incorrect')}
+                                                        >
+                                                            ✗ Incorrect
+                                                        </button>
+                                                    </div>
+                                                </div>
+
+                                                <div className="form-group">
+                                                    <label>Question Number</label>
+                                                    <input
+                                                        type="number"
+                                                        value={editingEntry.number || ''}
+                                                        onChange={e => updateEditingEntry('number', e.target.value ? parseInt(e.target.value) : null)}
+                                                    />
+                                                </div>
+
+                                                <div className="form-group">
+                                                    <label>Section</label>
+                                                    <input
+                                                        type="text"
+                                                        list="sections-datalist-modal"
+                                                        placeholder="e.g. Thorax, Upper Limb, Head and Neck"
+                                                        value={editingEntry.section || ''}
+                                                        onChange={e => updateEditingEntry('section', e.target.value)}
+                                                    />
+                                                    <datalist id="sections-datalist-modal">
+                                                        {uniqueSections.map(sec => (
+                                                            <option key={sec} value={sec} />
+                                                        ))}
+                                                    </datalist>
+                                                </div>
+
+                                                <div className="form-group">
+                                                    <label>Front (Question)</label>
+                                                    <textarea
+                                                        value={editingEntry.front || ''}
+                                                        onChange={e => updateEditingEntry('front', e.target.value)}
+                                                    />
+                                                </div>
+
+                                                <div className="form-group">
+                                                    <label>Back (Answer)</label>
+                                                    <textarea
+                                                        value={editingEntry.back || ''}
+                                                        onChange={e => updateEditingEntry('back', e.target.value)}
+                                                    />
+                                                </div>
+
+                                                <div className="form-group">
+                                                    <label>Tags (comma-separated)</label>
+                                                    <input
+                                                        type="text"
+                                                        value={Array.isArray(editingEntry.tags) ? editingEntry.tags.join(', ') : ''}
+                                                        onChange={e => updateEditingEntry('tags', e.target.value.split(',').map(t => t.trim().replace(/\s+/g, '_')).filter(Boolean))}
+                                                    />
+                                                </div>
+
+                                                <div className="form-group">
+                                                    <label>Notes</label>
+                                                    <textarea
+                                                        value={editingEntry.notes || ''}
+                                                        onChange={e => updateEditingEntry('notes', e.target.value)}
+                                                    />
+                                                </div>
+                                            </div>
+                                        </div>
+
+                                        <div className="modal-actions">
+                                            <button className="secondary" onClick={() => setEditingEntry(null)}>Cancel</button>
+                                            <button onClick={saveEdit}>Save Changes</button>
+                                        </div>
+                                    </div>
+                                </div>
+                            )}
                         </div>
                     </div>
-                )}
 
-                {showShortcuts && (
-                    <div className="modal-overlay" onClick={() => setShowShortcuts(false)}>
-                        <div className="modal-content" onClick={e => e.stopPropagation()} style={{ maxWidth: '440px' }}>
-                            <div className="modal-header">
-                                <h2 className="modal-title">Keyboard Shortcuts</h2>
-                                <button className="modal-close" onClick={() => setShowShortcuts(false)}>×</button>
+                    {showDebug && settings?.debug_mode && (
+                        <div style={{
+                            width: '400px',
+                            minWidth: '400px',
+                            borderLeft: '1px solid var(--border)',
+                            background: 'var(--bg-card)',
+                            display: 'flex',
+                            flexDirection: 'column',
+                            overflow: 'hidden',
+                        }}>
+                            <div style={{
+                                padding: '1rem',
+                                borderBottom: '1px solid var(--border)',
+                                display: 'flex',
+                                alignItems: 'center',
+                                justifyContent: 'space-between',
+                            }}>
+                                <strong style={{ fontSize: '0.9rem' }}>Debug Log</strong>
+                                <div style={{ display: 'flex', gap: '0.5rem', alignItems: 'center' }}>
+                                    <span style={{ fontSize: '0.75rem', color: 'var(--text-secondary)' }}>{debugLog.length} entries</span>
+                                    {debugLog.length > 0 && (
+                                        <button className="secondary" onClick={() => setDebugLog([])} style={{ fontSize: '0.75rem', padding: '0.2rem 0.5rem' }}>Clear</button>
+                                    )}
+                                    <button className="secondary" onClick={() => setShowDebug(false)} style={{ fontSize: '0.75rem', padding: '0.2rem 0.5rem' }}>×</button>
+                                </div>
                             </div>
-                            <div className="modal-body" style={{ padding: '0.5rem 0' }}>
-                                <table className="shortcuts-table">
-                                    <tbody>
-                                        {SHORTCUTS.map((s, i) => (
-                                            <tr key={i}>
-                                                <td><span className="kbd">{s.keys}</span></td>
-                                                <td>{s.desc}</td>
-                                            </tr>
-                                        ))}
-                                    </tbody>
-                                </table>
+                            <div style={{ flex: 1, overflow: 'auto', fontFamily: "'JetBrains Mono', monospace", fontSize: '0.78rem' }}>
+                                {debugLog.length === 0 && (
+                                    <div style={{ padding: '2rem 1rem', textAlign: 'center', color: 'var(--text-secondary)' }}>
+                                        Parse a question to see debug output here.
+                                    </div>
+                                )}
+                                {[...debugLog].reverse().map((log, i) => (
+                                    <div key={i} style={{ padding: '0.75rem 1rem', borderBottom: '1px solid var(--border)' }}>
+                                        <div style={{ color: 'var(--text-secondary)', marginBottom: '0.5rem', fontSize: '0.72rem' }}>
+                                            {log.timestamp} &middot; {log.backend} &middot; {log.model}{log.attempt ? ` &middot; attempt ${log.attempt}` : ''}
+                                        </div>
+                                        <div style={{ marginBottom: '0.25rem', color: 'var(--accent)', fontWeight: 600 }}>INPUT</div>
+                                        <pre style={{ whiteSpace: 'pre-wrap', wordBreak: 'break-word', margin: '0 0 0.75rem 0', color: 'var(--text-primary)', lineHeight: 1.4 }}>{log.input}</pre>
+                                        <div style={{ marginBottom: '0.25rem', color: 'var(--success)', fontWeight: 600 }}>RAW OUTPUT</div>
+                                        <pre style={{ whiteSpace: 'pre-wrap', wordBreak: 'break-word', margin: 0, color: 'var(--text-primary)', lineHeight: 1.4 }}>{log.raw_output}</pre>
+                                    </div>
+                                ))}
                             </div>
                         </div>
-                    </div>
-                )}
+                    )}
 
-                {toast && <div className="toast">{toast}</div>}
+                    {showShortcuts && (
+                        <div className="modal-overlay" onClick={() => setShowShortcuts(false)}>
+                            <div className="modal-content" onClick={e => e.stopPropagation()} style={{ maxWidth: '440px' }}>
+                                <div className="modal-header">
+                                    <h2 className="modal-title">Keyboard Shortcuts</h2>
+                                    <button className="modal-close" onClick={() => setShowShortcuts(false)}>×</button>
+                                </div>
+                                <div className="modal-body" style={{ padding: '0.5rem 0' }}>
+                                    <table className="shortcuts-table">
+                                        <tbody>
+                                            {SHORTCUTS.map((s, i) => (
+                                                <tr key={i}>
+                                                    <td><span className="kbd">{s.keys}</span></td>
+                                                    <td>{s.desc}</td>
+                                                </tr>
+                                            ))}
+                                        </tbody>
+                                    </table>
+                                </div>
+                            </div>
+                        </div>
+                    )}
+
+                    {toast && <div className="toast">{toast}</div>}
                 </div>
             );
         }
@@ -3576,4 +3624,5 @@
         }
     </script>
 </body>
+
 </html>
