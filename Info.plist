@@ -3,17 +3,17 @@
 <plist version="1.0">
 <dict>
     <key>CFBundleName</key>
-    <string>Pereste</string>
+    <string>Pereste Parse</string>
     <key>CFBundleDisplayName</key>
-    <string>Pereste</string>
+    <string>Pereste Parse</string>
     <key>CFBundleIdentifier</key>
-    <string>com.peresteparse.app</string>
+    <string>com.pereste.parse</string>
     <key>CFBundleVersion</key>
     <string>2.0.0</string>
     <key>CFBundleShortVersionString</key>
     <string>2.0.0</string>
     <key>CFBundleExecutable</key>
-    <string>PeresteParser</string>
+    <string>PeresteParse</string>
     <key>CFBundleIconFile</key>
     <string>app</string>
     <key>CFBundlePackageType</key>
@@ -21,7 +21,7 @@
     <key>LSMinimumSystemVersion</key>
     <string>13.0</string>
     <key>NSMicrophoneUsageDescription</key>
-    <string>Pereste needs microphone access to record voice transcriptions.</string>
+    <string>Pereste Parse needs microphone access to record voice transcriptions.</string>
     <key>NSHighResolutionCapable</key>
     <true/>
 </dict>

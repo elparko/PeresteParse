@@ -1,6 +1,6 @@
 #!/bin/bash
 #
-# build_app.sh — Build Pereste.app macOS bundle
+# build_app.sh — Build Pereste Parse.app macOS bundle
 #
 # Creates a self-contained .app directory with embedded Python venv
 # and all dependencies pre-installed.
@@ -12,13 +12,13 @@ set -euo pipefail
 SCRIPT_DIR="$(cd "$(dirname "$0")" && pwd)"
 PROJECT_DIR="$(cd "$SCRIPT_DIR/.." && pwd)"
 DIST_DIR="$PROJECT_DIR/dist"
-APP_DIR="$DIST_DIR/Pereste.app"
+APP_DIR="$DIST_DIR/Pereste Parse.app"
 CONTENTS="$APP_DIR/Contents"
 RESOURCES="$CONTENTS/Resources"
 MACOS="$CONTENTS/MacOS"
 FRAMEWORKS="$CONTENTS/Frameworks"
 
-echo "=== Pereste.app Builder ==="
+echo "=== Pereste Parse.app Builder ==="
 echo "Project: $PROJECT_DIR"
 echo ""
 
@@ -45,7 +45,7 @@ echo "Copying Info.plist..."
 cp "$PROJECT_DIR/Info.plist" "$CONTENTS/"
 
 # ── Step 5: Generate app icon ───────────────────────────────────────────────
-ICON_SOURCE="$PROJECT_DIR/static/icon-512.png"
+ICON_SOURCE="$PROJECT_DIR/static/plogo-icon.png"
 if [ -f "$ICON_SOURCE" ]; then
     echo "Generating app icon..."
     ICONSET_DIR="$DIST_DIR/app.iconset"
@@ -98,7 +98,7 @@ echo "  Dependencies installed."
 
 # ── Step 8: Write launcher script ───────────────────────────────────────────
 echo "Writing launcher script..."
-cat > "$MACOS/PeresteParser" << 'LAUNCHER'
+cat > "$MACOS/PeresteParse" << 'LAUNCHER'
 #!/bin/bash
 DIR="$(cd "$(dirname "$0")/../Resources" && pwd)"
 
@@ -108,7 +108,7 @@ export PATH="$DIR/venv/bin:/opt/homebrew/bin:/usr/local/bin:/usr/bin:/bin:/usr/s
 cd "$DIR"
 exec "$DIR/venv/bin/python" app.py
 LAUNCHER
-chmod +x "$MACOS/PeresteParser"
+chmod +x "$MACOS/PeresteParse"
 
 # ── Step 9: Report ──────────────────────────────────────────────────────────
 echo ""

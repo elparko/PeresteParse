@@ -1,4 +1,4 @@
-"""Shared fixtures for Pereste tests."""
+"""Shared fixtures for Pereste Parse tests."""
 
 import json
 import pytest
@@ -11,7 +11,7 @@ import server
 @pytest.fixture
 def app(tmp_path):
     """Create Flask test app with temp data directory."""
-    data_dir = tmp_path / '.peresteparse'
+    data_dir = tmp_path / '.pereste'
     data_dir.mkdir()
     data_file = data_dir / 'entries.json'
     models_dir = data_dir / 'models'
@@ -36,13 +36,13 @@ def client(app):
 @pytest.fixture
 def data_file(tmp_path):
     """Path to temp entries.json (matches the patched DATA_FILE)."""
-    return tmp_path / '.peresteparse' / 'entries.json'
+    return tmp_path / '.pereste' / 'entries.json'
 
 
 @pytest.fixture
 def models_dir(tmp_path):
     """Path to temp models directory (created on disk)."""
-    d = tmp_path / '.peresteparse' / 'models'
+    d = tmp_path / '.pereste' / 'models'
     d.mkdir(parents=True, exist_ok=True)
     return d
 

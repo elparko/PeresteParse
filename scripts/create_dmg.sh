@@ -1,9 +1,9 @@
 #!/bin/bash
 #
-# create_dmg.sh — Create Pereste.dmg for distribution
+# create_dmg.sh — Create Pereste Parse.dmg for distribution
 #
 # Creates a DMG disk image with drag-to-Applications support.
-# Requires Pereste.app to be built first (run build_app.sh).
+# Requires Pereste Parse.app to be built first (run build_app.sh).
 #
 # Usage: bash scripts/create_dmg.sh
 #
@@ -12,13 +12,13 @@ set -euo pipefail
 SCRIPT_DIR="$(cd "$(dirname "$0")" && pwd)"
 PROJECT_DIR="$(cd "$SCRIPT_DIR/.." && pwd)"
 DIST_DIR="$PROJECT_DIR/dist"
-APP_DIR="$DIST_DIR/Pereste.app"
-DMG_NAME="Pereste.dmg"
+APP_DIR="$DIST_DIR/Pereste Parse.app"
+DMG_NAME="Pereste Parse.dmg"
 DMG_PATH="$DIST_DIR/$DMG_NAME"
-VOLUME_NAME="Pereste"
+VOLUME_NAME="Pereste Parse"
 STAGING_DIR="$DIST_DIR/dmg-staging"
 
-echo "=== Pereste DMG Creator ==="
+echo "=== Pereste Parse DMG Creator ==="
 
 # ── Verify .app exists ──────────────────────────────────────────────────────
 if [ ! -d "$APP_DIR" ]; then

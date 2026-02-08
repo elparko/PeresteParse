@@ -1161,7 +1161,7 @@ wheels = [
 ]
 
 [[package]]
-name = "peresteparse"
+name = "pereste-parse"
 version = "2.0.0"
 source = { virtual = "." }
 dependencies = [

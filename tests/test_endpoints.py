@@ -209,7 +209,7 @@ class TestExportCsvEndpoint:
         assert response.status_code == 200
         data = response.get_json()
         assert data['success'] is True
-        assert 'peresteparse-all-' in data['filename']
+        assert 'pereste-parse-all-' in data['filename']
         assert data['filename'].endswith('.csv')
 
         csv_path = Path(data['path'])
@@ -307,7 +307,7 @@ class TestExportApkg:
         assert response.status_code == 200
         data = response.get_json()
         assert data['success'] is True
-        assert 'peresteparse-all-' in data['filename']
+        assert 'pereste-parse-all-' in data['filename']
         assert data['filename'].endswith('.apkg')
 
         apkg_path = Path(data['path'])
@@ -334,7 +334,7 @@ class TestExportApkg:
 
         assert response.status_code == 200
         data = response.get_json()
-        assert 'peresteparse-incorrect-' in data['filename']
+        assert 'pereste-parse-incorrect-' in data['filename']
 
     def test_export_apkg_is_valid_zip(self, client, sample_entries, tmp_path):
         import zipfile

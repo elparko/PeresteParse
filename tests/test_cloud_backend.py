@@ -86,7 +86,7 @@ class TestConfigEndpoints:
         assert data['api_key'] == ''  # masked (empty)
 
     def test_get_config_masks_api_key(self, client, tmp_path):
-        config_file = tmp_path / '.peresteparse' / 'config.json'
+        config_file = tmp_path / '.pereste' / 'config.json'
         config_file.write_text(json.dumps({
             'parsing_backend': 'cloud',
             'api_key': 'sk-ant-api-1234567890abcdef',
@@ -169,7 +169,7 @@ class TestParseEndpointCloud:
     """Tests for /api/parse routing to cloud backend."""
 
     def test_parse_routes_to_cloud(self, client, tmp_path):
-        config_file = tmp_path / '.peresteparse' / 'config.json'
+        config_file = tmp_path / '.pereste' / 'config.json'
         config_file.write_text(json.dumps({
             'parsing_backend': 'cloud',
             'api_key': 'sk-test-key-12345678',
@@ -204,7 +204,7 @@ class TestParseEndpointCloud:
         assert 'lower_limb' in data['tags']
 
     def test_parse_cloud_missing_api_key(self, client, tmp_path):
-        config_file = tmp_path / '.peresteparse' / 'config.json'
+        config_file = tmp_path / '.pereste' / 'config.json'
         config_file.write_text(json.dumps({
             'parsing_backend': 'cloud',
             'api_key': '',
@@ -220,7 +220,7 @@ class TestParseEndpointCloud:
         assert 'API key' in res.get_json()['error']
 
     def test_parse_cloud_api_error(self, client, tmp_path):
-        config_file = tmp_path / '.peresteparse' / 'config.json'
+        config_file = tmp_path / '.pereste' / 'config.json'
         config_file.write_text(json.dumps({
             'parsing_backend': 'cloud',
             'api_key': 'sk-test-key-12345678',
@@ -249,7 +249,7 @@ class TestParseEndpointLocal:
 
     def test_parse_local_when_configured(self, client, tmp_path):
         """Verify local parsing still works when config says 'local'."""
-        config_file = tmp_path / '.peresteparse' / 'config.json'
+        config_file = tmp_path / '.pereste' / 'config.json'
         config_file.write_text(json.dumps({'parsing_backend': 'local'}))
 
         expected = json.dumps({
@@ -281,7 +281,7 @@ class TestHealthCloud:
     """Tests for /api/health with cloud backend."""
 
     def test_health_cloud_ok_with_api_key(self, client, tmp_path):
-        config_file = tmp_path / '.peresteparse' / 'config.json'
+        config_file = tmp_path / '.pereste' / 'config.json'
         config_file.write_text(json.dumps({
             'parsing_backend': 'cloud',
             'api_key': 'sk-test-key-12345678',
@@ -299,7 +299,7 @@ class TestHealthCloud:
         assert data['provider'] == 'anthropic'
 
     def test_health_cloud_error_no_api_key(self, client, tmp_path):
-        config_file = tmp_path / '.peresteparse' / 'config.json'
+        config_file = tmp_path / '.pereste' / 'config.json'
         config_file.write_text(json.dumps({
             'parsing_backend': 'cloud',
             'api_key': '',

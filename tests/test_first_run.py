@@ -19,7 +19,7 @@ class TestSetupCompleteDefault:
 
     def test_old_config_gets_default(self, client, tmp_path):
         """An existing config without setup_complete gets the default value."""
-        config_file = tmp_path / '.peresteparse' / 'config.json'
+        config_file = tmp_path / '.pereste' / 'config.json'
         config_file.write_text(json.dumps({
             'parsing_backend': 'cloud',
             'api_key': 'sk-test-1234',

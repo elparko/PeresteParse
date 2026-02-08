@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 """
-Pereste - Standalone Native App
+Pereste Parse - Standalone Native App
 Launches Flask server and opens native macOS window
 """
 import sys
@@ -33,7 +33,7 @@ if __name__ == '__main__':
 
     # Create native window
     window = webview.create_window(
-        'Pereste',
+        'Pereste Parse',
         'http://127.0.0.1:5111',
         width=1400,
         height=900,
