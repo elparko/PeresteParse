@@ -1,6 +1,6 @@
 [project]
 name = "pereste-parse"
-version = "2.1.1"
+version = "2.1.2"
 description = "Pereste Parse - Voice to flashcards with LLM parsing"
 requires-python = ">=3.11"
 dependencies = [

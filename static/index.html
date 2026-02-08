@@ -2387,13 +2387,42 @@
             function saveEdit() {
                 if (!editingEntry) return;
 
-                // Update section tag when section changes
                 const updatedEntry = { ...editingEntry };
+                const newNumber = updatedEntry.number;
+                const newSection = updatedEntry.section || 'Uncategorized';
+
+                let entriesToUpdate = [...entries];
+
+                // Check for number conflict in the same section
+                if (typeof newNumber === 'number') {
+                    const conflict = entries.find(e =>
+                        e.id !== updatedEntry.id &&
+                        (e.section || 'Uncategorized') === newSection &&
+                        e.number === newNumber
+                    );
+
+                    if (conflict) {
+                        if (confirm(`Question #${newNumber} already exists in "${newSection}".\n\nShift existing #${newNumber} and subsequent questions down?`)) {
+                            // Increment numbers of all entries in this section >= newNumber
+                            entriesToUpdate = entriesToUpdate.map(e => {
+                                if (e.id === updatedEntry.id) return e; // Skip self
+                                const eSection = e.section || 'Uncategorized';
+                                if (eSection === newSection && typeof e.number === 'number' && e.number >= newNumber) {
+                                    return { ...e, number: e.number + 1 };
+                                }
+                                return e;
+                            });
+                            showToast(`Shifted subsequent questions in "${newSection}"`);
+                        }
+                    }
+                }
+
+                // Update section tag when section changes
                 if (updatedEntry.section) {
                     const sectionTag = updatedEntry.section.toLowerCase().replace(/\s+/g, '_');
 
-                    // Remove old section tags (any tag that matches a section name format)
-                    const existingSections = entries.map(e => e.section?.toLowerCase().replace(/\s+/g, '_'));
+                    // Remove old section tags
+                    const existingSections = entriesToUpdate.map(e => e.section?.toLowerCase().replace(/\s+/g, '_'));
                     updatedEntry.tags = (updatedEntry.tags || []).filter(tag =>
                         !existingSections.includes(tag)
                     );
@@ -2404,7 +2433,7 @@
                     }
                 }
 
-                setEntries(prev => prev.map(e =>
+                setEntries(entriesToUpdate.map(e =>
                     e.id === updatedEntry.id ? updatedEntry : e
                 ));
                 setEditingEntry(null);
@@ -3380,7 +3409,12 @@
                                                                 const data = await res.json();
                                                                 if (res.ok && data.success) {
                                                                     if (confirm(`Import ${data.count} entries? This will add to your existing data.`)) {
-                                                                        setEntries(prev => [...prev, ...data.entries]);
+                                                                        // Ensure imported entries have unique IDs
+                                                                        const newEntries = data.entries.map(e => ({
+                                                                            ...e,
+                                                                            id: Date.now() + Math.random() // simple unique ID
+                                                                        }));
+                                                                        setEntries(prev => [...prev, ...newEntries]);
                                                                         showToast(`Imported ${data.count} entries`);
                                                                         setShowSettings(false);
                                                                     }
