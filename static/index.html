@@ -1,0 +1,1614 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="theme-color" content="#4a9eff">
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+    <meta name="apple-mobile-web-app-title" content="Anatomix">
+    <title>Anatomix</title>
+    <link rel="manifest" href="/manifest.json">
+    <link rel="icon" type="image/png" sizes="192x192" href="/icon-192.png">
+    <link rel="apple-touch-icon" href="/icon-192.png">
+    <script crossorigin src="https://unpkg.com/react@18/umd/react.production.min.js"></script>
+    <script crossorigin src="https://unpkg.com/react-dom@18/umd/react-dom.production.min.js"></script>
+    <script src="https://unpkg.com/@babel/standalone/babel.min.js"></script>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;500;600&family=Outfit:wght@300;400;500;600&display=swap" rel="stylesheet">
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        :root {
+            --bg-dark: #1a1a1a;
+            --bg-card: #242424;
+            --bg-input: #2a2a2a;
+            --border: #3a3a3a;
+            --text-primary: #e0e0e0;
+            --text-secondary: #a0a0a0;
+            --accent: #4a9eff;
+            --accent-hover: #6bb0ff;
+            --success: #4ade80;
+            --error: #f87171;
+            --warning: #fbbf24;
+        }
+
+        body {
+            background: var(--bg-dark);
+            color: var(--text-primary);
+            font-family: 'Outfit', sans-serif;
+            line-height: 1.6;
+        }
+
+        code, pre, .mono {
+            font-family: 'JetBrains Mono', monospace;
+        }
+
+        .container {
+            max-width: 1800px;
+            margin: 0 auto;
+            padding: 2rem;
+        }
+
+        h1 {
+            font-size: 2rem;
+            font-weight: 600;
+            margin-bottom: 0.5rem;
+            background: linear-gradient(135deg, var(--accent), var(--success));
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+        }
+
+        .subtitle {
+            color: var(--text-secondary);
+            margin-bottom: 2rem;
+            font-size: 0.95rem;
+        }
+
+        .health-status {
+            padding: 0.75rem 1rem;
+            border-radius: 8px;
+            margin-bottom: 2rem;
+            font-size: 0.9rem;
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+        }
+
+        .health-status.ok {
+            background: rgba(74, 222, 128, 0.1);
+            border: 1px solid rgba(74, 222, 128, 0.3);
+            color: var(--success);
+        }
+
+        .health-status.error {
+            background: rgba(248, 113, 113, 0.1);
+            border: 1px solid rgba(248, 113, 113, 0.3);
+            color: var(--error);
+        }
+
+        .health-status.loading {
+            background: rgba(251, 191, 36, 0.1);
+            border: 1px solid rgba(251, 191, 36, 0.3);
+            color: var(--warning);
+        }
+
+        .session-bar {
+            background: var(--bg-card);
+            border: 1px solid var(--border);
+            border-radius: 12px;
+            padding: 1.5rem;
+            margin-bottom: 1.5rem;
+            display: flex;
+            gap: 1rem;
+            align-items: flex-end;
+        }
+
+        .input-group {
+            flex: 1;
+            display: flex;
+            flex-direction: column;
+            gap: 0.5rem;
+        }
+
+        .input-group label {
+            font-size: 0.85rem;
+            color: var(--text-secondary);
+            font-weight: 500;
+        }
+
+        .input-group input {
+            background: var(--bg-input);
+            border: 1px solid var(--border);
+            border-radius: 8px;
+            padding: 0.75rem;
+            color: var(--text-primary);
+            font-size: 0.95rem;
+            font-family: 'Outfit', sans-serif;
+            transition: border-color 0.2s;
+        }
+
+        .input-group input:focus {
+            outline: none;
+            border-color: var(--accent);
+        }
+
+        .input-zone {
+            background: var(--bg-card);
+            border: 1px solid var(--border);
+            border-radius: 12px;
+            padding: 1.5rem;
+            margin-bottom: 1.5rem;
+        }
+
+        .input-zone label {
+            display: block;
+            font-size: 0.85rem;
+            color: var(--text-secondary);
+            margin-bottom: 0.75rem;
+            font-weight: 500;
+        }
+
+        .input-zone textarea {
+            width: 100%;
+            min-height: 120px;
+            background: var(--bg-input);
+            border: 1px solid var(--border);
+            border-radius: 8px;
+            padding: 1rem;
+            color: var(--text-primary);
+            font-size: 0.95rem;
+            font-family: 'Outfit', sans-serif;
+            resize: vertical;
+            transition: border-color 0.2s;
+        }
+
+        .input-zone textarea:focus {
+            outline: none;
+            border-color: var(--accent);
+        }
+
+        .input-actions {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-top: 1rem;
+        }
+
+        .shortcut-hint {
+            font-size: 0.85rem;
+            color: var(--text-secondary);
+            font-family: 'JetBrains Mono', monospace;
+        }
+
+        button {
+            background: var(--accent);
+            color: white;
+            border: none;
+            padding: 0.75rem 1.5rem;
+            border-radius: 8px;
+            font-size: 0.95rem;
+            font-weight: 500;
+            cursor: pointer;
+            transition: all 0.2s;
+            font-family: 'Outfit', sans-serif;
+        }
+
+        button:hover {
+            background: var(--accent-hover);
+            transform: translateY(-1px);
+        }
+
+        button:active {
+            transform: translateY(0);
+        }
+
+        button:disabled {
+            background: var(--border);
+            cursor: not-allowed;
+            transform: none;
+        }
+
+        button.secondary {
+            background: var(--bg-input);
+            color: var(--text-primary);
+            border: 1px solid var(--border);
+        }
+
+        button.secondary:hover {
+            background: var(--border);
+        }
+
+        button.danger {
+            background: var(--error);
+        }
+
+        button.danger:hover {
+            background: #dc2626;
+        }
+
+        .stats-bar {
+            display: flex;
+            gap: 1rem;
+            margin-bottom: 1.5rem;
+        }
+
+        .stat-card {
+            flex: 1;
+            background: var(--bg-card);
+            border: 1px solid var(--border);
+            border-radius: 12px;
+            padding: 1rem 1.5rem;
+            display: flex;
+            flex-direction: column;
+            gap: 0.25rem;
+        }
+
+        .stat-label {
+            font-size: 0.8rem;
+            color: var(--text-secondary);
+            text-transform: uppercase;
+            letter-spacing: 0.05em;
+            font-weight: 500;
+        }
+
+        .stat-value {
+            font-size: 2rem;
+            font-weight: 600;
+            font-family: 'JetBrains Mono', monospace;
+        }
+
+        .stat-card.correct .stat-value {
+            color: var(--success);
+        }
+
+        .stat-card.incorrect .stat-value {
+            color: var(--error);
+        }
+
+        .table-wrapper {
+            background: var(--bg-card);
+            border: 1px solid var(--border);
+            border-radius: 12px;
+            overflow: hidden;
+            margin-bottom: 1.5rem;
+        }
+
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            table-layout: auto;
+        }
+
+        thead {
+            background: var(--bg-input);
+            border-bottom: 1px solid var(--border);
+        }
+
+        th {
+            text-align: left;
+            padding: 1rem;
+            font-size: 0.85rem;
+            color: var(--text-secondary);
+            font-weight: 600;
+            text-transform: uppercase;
+            letter-spacing: 0.05em;
+        }
+
+        td {
+            padding: 1rem;
+            border-bottom: 1px solid var(--border);
+            font-size: 0.9rem;
+            user-select: text;
+            -webkit-user-select: text;
+        }
+
+        tr:last-child td {
+            border-bottom: none;
+        }
+
+        tbody tr {
+            transition: background 0.2s;
+        }
+
+        tbody tr:hover {
+            background: var(--bg-input);
+        }
+
+        tbody tr.new-entry {
+            animation: highlight 1s ease-out;
+        }
+
+        @keyframes highlight {
+            0% {
+                background: rgba(74, 158, 255, 0.3);
+            }
+            100% {
+                background: transparent;
+            }
+        }
+
+        .result-badge {
+            display: inline-block;
+            padding: 0.25rem 0.75rem;
+            border-radius: 6px;
+            font-size: 0.8rem;
+            font-weight: 600;
+            text-transform: uppercase;
+            font-family: 'JetBrains Mono', monospace;
+            cursor: pointer;
+            transition: all 0.2s;
+            border: 2px solid transparent;
+        }
+
+        .result-badge:hover {
+            transform: scale(1.05);
+            border-color: var(--text-primary);
+        }
+
+        .result-badge.correct {
+            background: rgba(74, 222, 128, 0.2);
+            color: var(--success);
+        }
+
+        .result-badge.correct:hover {
+            background: rgba(74, 222, 128, 0.3);
+        }
+
+        .result-badge.incorrect {
+            background: rgba(248, 113, 113, 0.2);
+            color: var(--error);
+        }
+
+        .result-badge.incorrect:hover {
+            background: rgba(248, 113, 113, 0.3);
+        }
+
+        .tags {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 0.5rem;
+        }
+
+        .tag {
+            background: var(--bg-input);
+            padding: 0.25rem 0.5rem;
+            border-radius: 4px;
+            font-size: 0.75rem;
+            font-family: 'JetBrains Mono', monospace;
+            color: var(--text-secondary);
+        }
+
+        .cell-content {
+            max-width: 100%;
+            overflow: hidden;
+            user-select: text;
+            -webkit-user-select: text;
+        }
+
+        .cell-content.expandable {
+            cursor: pointer;
+            max-height: 3em;
+            line-height: 1.5em;
+            display: -webkit-box;
+            -webkit-line-clamp: 2;
+            -webkit-box-orient: vertical;
+            overflow: hidden;
+            text-overflow: ellipsis;
+        }
+
+        .cell-content.expandable ul,
+        .cell-content.expandable p {
+            margin: 0;
+            padding: 0;
+            display: inline;
+        }
+
+        .cell-content.expandable ul {
+            list-style: none;
+        }
+
+        .cell-content.expandable li {
+            display: inline;
+        }
+
+        .cell-content.expandable li:before {
+            content: "• ";
+        }
+
+        .cell-content.expanded {
+            max-height: none;
+            display: block;
+            -webkit-line-clamp: unset;
+            -webkit-box-orient: unset;
+        }
+
+        .cell-content.expanded ul {
+            display: block;
+            list-style: disc;
+            margin: 0.5rem 0;
+            padding-left: 1.5rem;
+        }
+
+        .cell-content.expanded p {
+            display: block;
+            margin: 0.25rem 0;
+        }
+
+        .cell-content.expanded li {
+            display: list-item;
+        }
+
+        .cell-content.expanded li:before {
+            content: none;
+        }
+
+        .delete-btn {
+            padding: 0.4rem 0.8rem;
+            font-size: 0.8rem;
+            background: transparent;
+            color: var(--error);
+            border: 1px solid var(--border);
+        }
+
+        .delete-btn:hover {
+            background: var(--error);
+            color: white;
+            border-color: var(--error);
+        }
+
+        .export-actions {
+            display: flex;
+            gap: 1rem;
+            margin-bottom: 2rem;
+        }
+
+        .empty-state {
+            text-align: center;
+            padding: 4rem 2rem;
+            color: var(--text-secondary);
+        }
+
+        .empty-state-icon {
+            font-size: 4rem;
+            margin-bottom: 1rem;
+            opacity: 0.3;
+        }
+
+        .empty-state-title {
+            font-size: 1.5rem;
+            margin-bottom: 0.5rem;
+            color: var(--text-primary);
+        }
+
+        .empty-state-text {
+            font-size: 0.95rem;
+        }
+
+        .loading {
+            display: inline-block;
+            width: 1rem;
+            height: 1rem;
+            border: 2px solid var(--border);
+            border-top-color: var(--accent);
+            border-radius: 50%;
+            animation: spin 0.8s linear infinite;
+        }
+
+        @keyframes spin {
+            to { transform: rotate(360deg); }
+        }
+
+        .error-message {
+            background: rgba(248, 113, 113, 0.1);
+            border: 1px solid rgba(248, 113, 113, 0.3);
+            color: var(--error);
+            padding: 1rem;
+            border-radius: 8px;
+            margin-top: 1rem;
+            font-size: 0.9rem;
+        }
+
+        .filter-bar {
+            display: flex;
+            gap: 1rem;
+            align-items: center;
+            margin-bottom: 1.5rem;
+        }
+
+        .filter-buttons {
+            display: flex;
+            gap: 0.5rem;
+            flex: 1;
+        }
+
+        .filter-btn {
+            padding: 0.5rem 1rem;
+            font-size: 0.9rem;
+            background: var(--bg-card);
+            border: 1px solid var(--border);
+            color: var(--text-secondary);
+        }
+
+        .filter-btn.active {
+            background: var(--accent);
+            color: white;
+            border-color: var(--accent);
+        }
+
+        .section-accordion {
+            margin-bottom: 1rem;
+        }
+
+        .section-header {
+            background: var(--bg-card);
+            border: 1px solid var(--border);
+            border-radius: 12px;
+            padding: 1rem 1.5rem;
+            cursor: pointer;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            transition: all 0.2s;
+            margin-bottom: 0.5rem;
+        }
+
+        .section-header:hover {
+            background: var(--bg-input);
+        }
+
+        .section-header.collapsed {
+            margin-bottom: 0;
+        }
+
+        .section-title {
+            font-size: 1.1rem;
+            font-weight: 600;
+            color: var(--text-primary);
+        }
+
+        .section-stats {
+            display: flex;
+            gap: 1.5rem;
+            align-items: center;
+            font-size: 0.9rem;
+            font-family: 'JetBrains Mono', monospace;
+        }
+
+        .section-stat {
+            color: var(--text-secondary);
+        }
+
+        .section-stat.correct {
+            color: var(--success);
+        }
+
+        .section-stat.incorrect {
+            color: var(--error);
+        }
+
+        .chevron {
+            color: var(--text-secondary);
+            transition: transform 0.2s;
+            font-size: 1.2rem;
+        }
+
+        .chevron.expanded {
+            transform: rotate(90deg);
+        }
+
+        .section-content {
+            overflow: hidden;
+            transition: max-height 0.3s ease-out;
+        }
+
+        .modal-overlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: rgba(0, 0, 0, 0.8);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            z-index: 1000;
+            padding: 2rem;
+        }
+
+        .modal-content {
+            background: var(--bg-card);
+            border: 1px solid var(--border);
+            border-radius: 12px;
+            max-width: 800px;
+            width: 100%;
+            max-height: 90vh;
+            overflow-y: auto;
+            position: relative;
+        }
+
+        .modal-header {
+            padding: 1.5rem;
+            border-bottom: 1px solid var(--border);
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .modal-title {
+            font-size: 1.2rem;
+            font-weight: 600;
+        }
+
+        .modal-close {
+            background: transparent;
+            border: none;
+            color: var(--text-secondary);
+            font-size: 1.5rem;
+            cursor: pointer;
+            padding: 0;
+            width: 2rem;
+            height: 2rem;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .modal-close:hover {
+            color: var(--text-primary);
+            background: transparent;
+            transform: none;
+        }
+
+        .modal-body {
+            padding: 1.5rem;
+        }
+
+        .anki-card {
+            background: var(--bg-input);
+            border: 2px solid var(--border);
+            border-radius: 12px;
+            padding: 2rem;
+            min-height: 200px;
+            margin-bottom: 1.5rem;
+            cursor: pointer;
+            transition: all 0.3s;
+            position: relative;
+        }
+
+        .anki-card:hover {
+            border-color: var(--accent);
+        }
+
+        .anki-card-label {
+            font-size: 0.75rem;
+            text-transform: uppercase;
+            color: var(--text-secondary);
+            margin-bottom: 0.75rem;
+            font-weight: 600;
+            letter-spacing: 0.05em;
+        }
+
+        .anki-card-content {
+            font-size: 1rem;
+            line-height: 1.6;
+            white-space: pre-wrap;
+        }
+
+        .formatted-content {
+            line-height: 1.8;
+        }
+
+        .formatted-content ul {
+            margin: 0.5rem 0;
+            padding-left: 1.5rem;
+        }
+
+        .formatted-content li {
+            margin: 0.25rem 0;
+        }
+
+        .formatted-content p {
+            margin: 0.5rem 0;
+        }
+
+        .formatted-content strong {
+            color: var(--accent);
+            font-weight: 600;
+        }
+
+        .anki-card-hint {
+            position: absolute;
+            bottom: 1rem;
+            right: 1rem;
+            font-size: 0.75rem;
+            color: var(--text-secondary);
+            font-style: italic;
+        }
+
+        .edit-form {
+            display: flex;
+            flex-direction: column;
+            gap: 1rem;
+        }
+
+        .form-group {
+            display: flex;
+            flex-direction: column;
+            gap: 0.5rem;
+        }
+
+        .form-group label {
+            font-size: 0.85rem;
+            color: var(--text-secondary);
+            font-weight: 500;
+        }
+
+        .form-group input,
+        .form-group textarea {
+            background: var(--bg-input);
+            border: 1px solid var(--border);
+            border-radius: 8px;
+            padding: 0.75rem;
+            color: var(--text-primary);
+            font-size: 0.95rem;
+            font-family: 'Outfit', sans-serif;
+        }
+
+        .form-group textarea {
+            min-height: 150px;
+            resize: vertical;
+        }
+
+        .form-group input:focus,
+        .form-group textarea:focus {
+            outline: none;
+            border-color: var(--accent);
+        }
+
+        .result-toggle {
+            display: flex;
+            gap: 0.5rem;
+        }
+
+        .result-toggle button {
+            flex: 1;
+            padding: 0.75rem;
+        }
+
+        .result-toggle button.active {
+            background: var(--accent);
+            color: white;
+        }
+
+        .modal-actions {
+            display: flex;
+            gap: 1rem;
+            justify-content: flex-end;
+            padding: 1.5rem;
+            border-top: 1px solid var(--border);
+        }
+
+        .edit-btn {
+            padding: 0.4rem 0.8rem;
+            font-size: 0.8rem;
+            background: var(--accent);
+            color: white;
+            border: none;
+        }
+
+        .edit-btn:hover {
+            background: var(--accent-hover);
+        }
+    </style>
+</head>
+<body>
+    <div id="root"></div>
+
+    <script type="text/babel">
+        const { useState, useEffect, useRef } = React;
+
+        function App() {
+            const [health, setHealth] = useState({ status: 'loading' });
+            const [section, setSection] = useState(() => localStorage.getItem('section') || '');
+            const [startNumber, setStartNumber] = useState(() => localStorage.getItem('startNumber') || '');
+            const [transcription, setTranscription] = useState('');
+            const [entries, setEntries] = useState([]);
+            const [parsing, setParsing] = useState(false);
+            const [error, setError] = useState(null);
+            const [expandedCells, setExpandedCells] = useState(new Set());
+            const [filter, setFilter] = useState('all'); // 'all', 'correct', 'incorrect'
+            const [collapsedSections, setCollapsedSections] = useState(new Set());
+            const [editingEntry, setEditingEntry] = useState(null);
+            const [showingFront, setShowingFront] = useState(true);
+            const textareaRef = useRef(null);
+            const tableEndRef = useRef(null);
+            const isInitialMount = useRef(true);
+
+            // Convert bullet points and formatting to HTML
+            function formatContent(text) {
+                if (!text) return '';
+
+                try {
+                    // Split into lines
+                    let lines = text.split('\n');
+                    let html = '';
+                    let inList = false;
+
+                    lines.forEach((line, index) => {
+                        line = line.trim();
+
+                        // Check if line is a bullet point (•, -, *, or - at start)
+                        const bulletMatch = line.match(/^[•\-\*]\s+(.+)$/);
+
+                        if (bulletMatch) {
+                            if (!inList) {
+                                html += '<ul>';
+                                inList = true;
+                            }
+                            // Escape HTML special characters
+                            const content = bulletMatch[1]
+                                .replace(/&/g, '&amp;')
+                                .replace(/</g, '&lt;')
+                                .replace(/>/g, '&gt;')
+                                .replace(/\*\*(.+?)\*\*/g, '<strong>$1</strong>');
+                            html += `<li>${content}</li>`;
+                        } else {
+                            if (inList) {
+                                html += '</ul>';
+                                inList = false;
+                            }
+                            if (line) {
+                                // Escape HTML and make text between ** bold
+                                line = line
+                                    .replace(/&/g, '&amp;')
+                                    .replace(/</g, '&lt;')
+                                    .replace(/>/g, '&gt;')
+                                    .replace(/\*\*(.+?)\*\*/g, '<strong>$1</strong>');
+                                html += `<p>${line}</p>`;
+                            }
+                        }
+                    });
+
+                    // Close any open list
+                    if (inList) {
+                        html += '</ul>';
+                    }
+
+                    return html || text; // Fallback to original text if empty
+                } catch (e) {
+                    console.error('Error formatting content:', e);
+                    // Fallback to plain text
+                    return text.replace(/&/g, '&amp;')
+                        .replace(/</g, '&lt;')
+                        .replace(/>/g, '&gt;')
+                        .replace(/\n/g, '<br>');
+                }
+            }
+
+            useEffect(() => {
+                checkHealth();
+                loadEntries();
+            }, []);
+
+            useEffect(() => {
+                localStorage.setItem('section', section);
+            }, [section]);
+
+            useEffect(() => {
+                localStorage.setItem('startNumber', startNumber);
+            }, [startNumber]);
+
+            useEffect(() => {
+                // Skip saving on initial mount to avoid race condition
+                if (isInitialMount.current) {
+                    isInitialMount.current = false;
+                    return;
+                }
+
+                // Save to both localStorage and backend
+                localStorage.setItem('entries', JSON.stringify(entries));
+                saveEntries(entries);
+            }, [entries]);
+
+            async function checkHealth() {
+                try {
+                    const res = await fetch('/api/health');
+                    const data = await res.json();
+                    setHealth(data);
+                } catch (err) {
+                    setHealth({
+                        status: 'error',
+                        message: 'Could not connect to server'
+                    });
+                }
+            }
+
+            async function loadEntries() {
+                try {
+                    const res = await fetch('/api/load');
+                    const data = await res.json();
+                    if (data.entries) {
+                        setEntries(data.entries);
+                    }
+                } catch (err) {
+                    console.error('Failed to load entries:', err);
+                    // Fallback to localStorage
+                    const saved = localStorage.getItem('entries');
+                    if (saved) {
+                        setEntries(JSON.parse(saved));
+                    }
+                }
+            }
+
+            async function saveEntries(entries) {
+                try {
+                    await fetch('/api/save', {
+                        method: 'POST',
+                        headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify({ entries })
+                    });
+                } catch (err) {
+                    console.error('Failed to save entries:', err);
+                }
+            }
+
+            async function handleParse() {
+                if (!transcription.trim()) return;
+
+                setParsing(true);
+                setError(null);
+
+                try {
+                    const res = await fetch('/api/parse', {
+                        method: 'POST',
+                        headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify({
+                            transcription: transcription.trim(),
+                            section: section
+                        })
+                    });
+
+                    const data = await res.json();
+
+                    if (!res.ok) {
+                        // Store full error details for debugging
+                        const errorMsg = data.error || 'Failed to parse';
+                        const fullError = {
+                            message: errorMsg,
+                            details: data.details,
+                            raw_response: data.raw_response
+                        };
+                        console.error('Parse error:', fullError);
+                        throw new Error(JSON.stringify(fullError));
+                    }
+
+                    // Auto-increment question number if not provided
+                    if (!data.number || data.number === null) {
+                        // Find the last entry's number
+                        const lastEntry = entries[entries.length - 1];
+                        const lastNumber = lastEntry?.number || 0;
+                        data.number = lastNumber + 1;
+                    }
+
+                    // Add entry with ID and timestamp
+                    const newEntry = {
+                        ...data,
+                        id: Date.now(),
+                        timestamp: new Date().toISOString(),
+                        isNew: true
+                    };
+
+                    setEntries(prev => [...prev, newEntry]);
+                    setTranscription('');
+                    textareaRef.current?.focus();
+
+                    // Scroll to new entry
+                    setTimeout(() => {
+                        tableEndRef.current?.scrollIntoView({ behavior: 'smooth' });
+                    }, 100);
+
+                    // Remove highlight animation after 1s
+                    setTimeout(() => {
+                        setEntries(prev => prev.map(e =>
+                            e.id === newEntry.id ? { ...e, isNew: false } : e
+                        ));
+                    }, 1000);
+
+                } catch (err) {
+                    setError(err.message);
+                } finally {
+                    setParsing(false);
+                }
+            }
+
+            function handleKeyDown(e) {
+                if (e.key === 'Enter') {
+                    e.preventDefault();
+                    handleParse();
+                }
+            }
+
+            function deleteEntry(id) {
+                setEntries(prev => prev.filter(e => e.id !== id));
+            }
+
+            function editEntry(entry) {
+                setEditingEntry({ ...entry });
+                setShowingFront(true);
+            }
+
+            function saveEdit() {
+                if (!editingEntry) return;
+
+                // Update section tag when section changes
+                const updatedEntry = { ...editingEntry };
+                if (updatedEntry.section) {
+                    const sectionTag = updatedEntry.section.toLowerCase().replace(/\s+/g, '_');
+
+                    // Remove old section tags (any tag that matches a section name format)
+                    const existingSections = entries.map(e => e.section?.toLowerCase().replace(/\s+/g, '_'));
+                    updatedEntry.tags = (updatedEntry.tags || []).filter(tag =>
+                        !existingSections.includes(tag)
+                    );
+
+                    // Add new section tag at the beginning
+                    if (!updatedEntry.tags.includes(sectionTag)) {
+                        updatedEntry.tags = [sectionTag, ...updatedEntry.tags];
+                    }
+                }
+
+                setEntries(prev => prev.map(e =>
+                    e.id === updatedEntry.id ? updatedEntry : e
+                ));
+                setEditingEntry(null);
+            }
+
+            function updateEditingEntry(field, value) {
+                setEditingEntry(prev => ({ ...prev, [field]: value }));
+            }
+
+            function flipCard() {
+                setShowingFront(prev => !prev);
+            }
+
+            function toggleResult(id) {
+                setEntries(prev => prev.map(e =>
+                    e.id === id
+                        ? { ...e, result: e.result === 'correct' ? 'incorrect' : 'correct' }
+                        : e
+                ));
+            }
+
+            function toggleCellExpand(id, field, event) {
+                // Don't toggle if user is selecting text
+                const selection = window.getSelection();
+                if (selection && selection.toString().length > 0) {
+                    return;
+                }
+
+                const key = `${id}-${field}`;
+                setExpandedCells(prev => {
+                    const next = new Set(prev);
+                    if (next.has(key)) {
+                        next.delete(key);
+                    } else {
+                        next.add(key);
+                    }
+                    return next;
+                });
+            }
+
+            function exportAnki(filterType = 'all') {
+                let toExport = entries;
+                if (filterType === 'correct') toExport = entries.filter(e => e.result === 'correct');
+                if (filterType === 'incorrect') toExport = entries.filter(e => e.result === 'incorrect');
+
+                if (toExport.length === 0) return;
+
+                const lines = ['front\tback\ttags'];
+                toExport.forEach(entry => {
+                    const front = (entry.front || '').replace(/\t/g, ' ').replace(/\n/g, ' ');
+                    const back = (entry.back || '').replace(/\t/g, ' ').replace(/\n/g, '<br>');
+                    const tags = (entry.tags || []).join(' ');
+                    lines.push(`${front}\t${back}\t${tags}`);
+                });
+
+                const blob = new Blob([lines.join('\n')], { type: 'text/plain' });
+                const url = URL.createObjectURL(blob);
+                const a = document.createElement('a');
+                const suffix = filterType === 'all' ? '' : `-${filterType}`;
+                a.href = url;
+                a.download = `anatomix${suffix}-${Date.now()}.txt`;
+                a.style.display = 'none';
+                document.body.appendChild(a);
+                a.click();
+                document.body.removeChild(a);
+                URL.revokeObjectURL(url);
+            }
+
+            async function exportCSV(filterType = 'all') {
+                let toExport = entries;
+                if (filterType === 'correct') toExport = entries.filter(e => e.result === 'correct');
+                if (filterType === 'incorrect') toExport = entries.filter(e => e.result === 'incorrect');
+
+                if (toExport.length === 0) {
+                    alert('No entries to export');
+                    return;
+                }
+
+                try {
+                    const response = await fetch('/api/export-csv', {
+                        method: 'POST',
+                        headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify({
+                            entries: toExport,
+                            filter: filterType
+                        })
+                    });
+
+                    const result = await response.json();
+
+                    if (!response.ok) {
+                        throw new Error(result.error || 'Export failed');
+                    }
+
+                    // Show success message
+                    alert(`✓ CSV exported successfully!\n\nSaved to: ${result.filename}\n\nCheck your Downloads folder.`);
+
+                } catch (err) {
+                    console.error('Export error:', err);
+                    alert('Failed to export CSV: ' + err.message);
+                }
+            }
+
+            function clearAll() {
+                if (confirm('Clear all entries? This cannot be undone.')) {
+                    setEntries([]);
+                }
+            }
+
+            function toggleSection(sectionName) {
+                setCollapsedSections(prev => {
+                    const next = new Set(prev);
+                    if (next.has(sectionName)) {
+                        next.delete(sectionName);
+                    } else {
+                        next.add(sectionName);
+                    }
+                    return next;
+                });
+            }
+
+            // Filter entries based on current filter
+            const filteredEntries = entries.filter(e => {
+                if (filter === 'all') return true;
+                return e.result === filter;
+            });
+
+            // Get unique sections for dropdown
+            const uniqueSections = [...new Set(entries.map(e => e.section).filter(Boolean))].sort();
+
+            // Group entries by section
+            const groupedEntries = filteredEntries.reduce((acc, entry) => {
+                const sec = entry.section || 'Uncategorized';
+                if (!acc[sec]) acc[sec] = [];
+                acc[sec].push(entry);
+                return acc;
+            }, {});
+
+            const stats = entries.reduce((acc, e) => {
+                acc.total++;
+                if (e.result === 'correct') acc.correct++;
+                if (e.result === 'incorrect') acc.incorrect++;
+                return acc;
+            }, { total: 0, correct: 0, incorrect: 0 });
+
+            const score = stats.total > 0
+                ? Math.round((stats.correct / stats.total) * 100)
+                : 0;
+
+            return (
+                <div className="container">
+                    <h1>Anatomix</h1>
+                    <p className="subtitle">Voice transcription → structured Anki cards</p>
+
+                    {health.status === 'loading' && (
+                        <div className="health-status loading">
+                            <span className="loading"></span>
+                            Checking Ollama connection...
+                        </div>
+                    )}
+
+                    {health.status === 'ok' && (
+                        <div className="health-status ok">
+                            ✓ Connected to Ollama ({health.model})
+                        </div>
+                    )}
+
+                    {health.status === 'error' && (
+                        <div className="health-status error">
+                            ✗ {health.message}
+                        </div>
+                    )}
+
+                    <div className="session-bar">
+                        <div className="input-group">
+                            <label>Section</label>
+                            <input
+                                type="text"
+                                list="sections-datalist"
+                                placeholder="e.g. Upper Limb, Thorax"
+                                value={section}
+                                onChange={e => setSection(e.target.value)}
+                            />
+                            <datalist id="sections-datalist">
+                                {uniqueSections.map(sec => (
+                                    <option key={sec} value={sec} />
+                                ))}
+                            </datalist>
+                        </div>
+                        <div className="input-group" style={{ maxWidth: '200px' }}>
+                            <label>Start Question #</label>
+                            <input
+                                type="number"
+                                placeholder="1"
+                                value={startNumber}
+                                onChange={e => setStartNumber(e.target.value)}
+                            />
+                        </div>
+                    </div>
+
+                    <div className="input-zone">
+                        <label>Paste Super Whisper Transcription</label>
+                        <textarea
+                            ref={textareaRef}
+                            value={transcription}
+                            onChange={e => setTranscription(e.target.value)}
+                            onKeyDown={handleKeyDown}
+                            placeholder="Paste your voice transcription here..."
+                            disabled={parsing || health.status !== 'ok'}
+                        />
+                        <div className="input-actions">
+                            <span className="shortcut-hint">Enter to parse</span>
+                            <button
+                                onClick={handleParse}
+                                disabled={!transcription.trim() || parsing || health.status !== 'ok'}
+                            >
+                                {parsing ? <><span className="loading"></span> Parsing...</> : 'Parse Question'}
+                            </button>
+                        </div>
+                        {error && (
+                            <div className="error-message">
+                                <strong>Error:</strong> {(() => {
+                                    try {
+                                        const errorObj = JSON.parse(error);
+                                        return (
+                                            <div>
+                                                <div>{errorObj.message}</div>
+                                                {errorObj.details && <div style={{ marginTop: '0.5rem', fontSize: '0.85rem' }}><strong>Details:</strong> {errorObj.details}</div>}
+                                                {errorObj.raw_response && (
+                                                    <details style={{ marginTop: '0.5rem', fontSize: '0.85rem' }}>
+                                                        <summary style={{ cursor: 'pointer' }}>Show raw Ollama response</summary>
+                                                        <pre style={{ marginTop: '0.5rem', padding: '0.5rem', background: 'var(--bg-input)', borderRadius: '4px', overflow: 'auto', maxHeight: '200px' }}>
+                                                            {errorObj.raw_response}
+                                                        </pre>
+                                                    </details>
+                                                )}
+                                            </div>
+                                        );
+                                    } catch {
+                                        return error;
+                                    }
+                                })()}
+                            </div>
+                        )}
+                    </div>
+
+                    {entries.length > 0 && (
+                        <>
+                            <div className="stats-bar">
+                                <div className="stat-card">
+                                    <div className="stat-label">Total</div>
+                                    <div className="stat-value">{stats.total}</div>
+                                </div>
+                                <div className="stat-card correct">
+                                    <div className="stat-label">Correct</div>
+                                    <div className="stat-value">{stats.correct}</div>
+                                </div>
+                                <div className="stat-card incorrect">
+                                    <div className="stat-label">Incorrect</div>
+                                    <div className="stat-value">{stats.incorrect}</div>
+                                </div>
+                                <div className="stat-card">
+                                    <div className="stat-label">Score</div>
+                                    <div className="stat-value">{score}%</div>
+                                </div>
+                            </div>
+
+                            <div className="filter-bar">
+                                <div className="filter-buttons">
+                                    <button
+                                        className={`filter-btn ${filter === 'all' ? 'active' : ''}`}
+                                        onClick={() => setFilter('all')}
+                                    >
+                                        All ({stats.total})
+                                    </button>
+                                    <button
+                                        className={`filter-btn ${filter === 'correct' ? 'active' : ''}`}
+                                        onClick={() => setFilter('correct')}
+                                    >
+                                        Correct ({stats.correct})
+                                    </button>
+                                    <button
+                                        className={`filter-btn ${filter === 'incorrect' ? 'active' : ''}`}
+                                        onClick={() => setFilter('incorrect')}
+                                    >
+                                        Incorrect ({stats.incorrect})
+                                    </button>
+                                </div>
+                                <div className="export-actions">
+                                    <button onClick={() => exportCSV(filter)}>Export CSV</button>
+                                    <button onClick={() => exportCSV('incorrect')} className="secondary">Incorrect CSV</button>
+                                    <button onClick={clearAll} className="secondary danger">Clear All</button>
+                                </div>
+                            </div>
+
+                            {Object.keys(groupedEntries).map(sectionName => {
+                                const sectionEntries = groupedEntries[sectionName];
+                                const isCollapsed = collapsedSections.has(sectionName);
+                                const sectionStats = sectionEntries.reduce((acc, e) => {
+                                    acc.total++;
+                                    if (e.result === 'correct') acc.correct++;
+                                    if (e.result === 'incorrect') acc.incorrect++;
+                                    return acc;
+                                }, { total: 0, correct: 0, incorrect: 0 });
+
+                                return (
+                                    <div key={sectionName} className="section-accordion">
+                                        <div
+                                            className={`section-header ${isCollapsed ? 'collapsed' : ''}`}
+                                            onClick={() => toggleSection(sectionName)}
+                                        >
+                                            <div style={{ display: 'flex', alignItems: 'center', gap: '1rem' }}>
+                                                <span className={`chevron ${isCollapsed ? '' : 'expanded'}`}>▶</span>
+                                                <span className="section-title">{sectionName}</span>
+                                            </div>
+                                            <div className="section-stats">
+                                                <span className="section-stat">Total: {sectionStats.total}</span>
+                                                <span className="section-stat correct">✓ {sectionStats.correct}</span>
+                                                <span className="section-stat incorrect">✗ {sectionStats.incorrect}</span>
+                                            </div>
+                                        </div>
+
+                                        {!isCollapsed && (
+                                            <div className="section-content">
+                                                <div className="table-wrapper">
+                                                    <table>
+                                                        <thead>
+                                                            <tr>
+                                                                <th style={{ width: '60px' }}>#</th>
+                                                                <th style={{ width: '100px' }}>Result</th>
+                                                                <th style={{ width: '30%' }}>Front</th>
+                                                                <th style={{ width: '30%' }}>Back</th>
+                                                                <th style={{ width: '25%' }}>Notes</th>
+                                                                <th style={{ width: '150px' }}>Actions</th>
+                                                            </tr>
+                                                        </thead>
+                                                        <tbody>
+                                                            {sectionEntries.map(entry => (
+                                                                <tr key={entry.id} className={entry.isNew ? 'new-entry' : ''}>
+                                                                    <td className="mono">{entry.number || '—'}</td>
+                                                                    <td>
+                                                                        <span
+                                                                            className={`result-badge ${entry.result}`}
+                                                                            onClick={() => toggleResult(entry.id)}
+                                                                            title="Click to toggle"
+                                                                        >
+                                                                            {entry.result === 'correct' ? '✓ correct' : '✗ incorrect'}
+                                                                        </span>
+                                                                    </td>
+                                                                    <td>
+                                                                        <div
+                                                                            className={`cell-content expandable ${
+                                                                                expandedCells.has(`${entry.id}-front`) ? 'expanded' : ''
+                                                                            }`}
+                                                                            onClick={(e) => toggleCellExpand(entry.id, 'front', e)}
+                                                                        >
+                                                                            {entry.front}
+                                                                        </div>
+                                                                    </td>
+                                                                    <td>
+                                                                        <div
+                                                                            className={`cell-content expandable ${
+                                                                                expandedCells.has(`${entry.id}-back`) ? 'expanded' : ''
+                                                                            }`}
+                                                                            onClick={(e) => toggleCellExpand(entry.id, 'back', e)}
+                                                                        >
+                                                                            {entry.back}
+                                                                        </div>
+                                                                    </td>
+                                                                    <td>
+                                                                        <div
+                                                                            className={`cell-content expandable ${
+                                                                                expandedCells.has(`${entry.id}-notes`) ? 'expanded' : ''
+                                                                            }`}
+                                                                            onClick={(e) => toggleCellExpand(entry.id, 'notes', e)}
+                                                                        >
+                                                                            {entry.notes || '—'}
+                                                                        </div>
+                                                                    </td>
+                                                                    <td>
+                                                                        <div style={{ display: 'flex', gap: '0.5rem' }}>
+                                                                            <button
+                                                                                className="edit-btn"
+                                                                                onClick={() => editEntry(entry)}
+                                                                            >
+                                                                                Edit
+                                                                            </button>
+                                                                            <button
+                                                                                className="delete-btn"
+                                                                                onClick={() => deleteEntry(entry.id)}
+                                                                            >
+                                                                                Delete
+                                                                            </button>
+                                                                        </div>
+                                                                    </td>
+                                                                </tr>
+                                                            ))}
+                                                        </tbody>
+                                                    </table>
+                                                </div>
+                                            </div>
+                                        )}
+                                    </div>
+                                );
+                            })}
+                            <div ref={tableEndRef}></div>
+                        </>
+                    )}
+
+                    {entries.length === 0 && health.status === 'ok' && (
+                        <div className="empty-state">
+                            <div className="empty-state-icon">📝</div>
+                            <div className="empty-state-title">No questions parsed yet</div>
+                            <div className="empty-state-text">
+                                Paste a Super Whisper transcription above and hit Enter to get started
+                            </div>
+                        </div>
+                    )}
+
+                    {editingEntry && (
+                        <div className="modal-overlay" onClick={() => setEditingEntry(null)}>
+                            <div className="modal-content" onClick={e => e.stopPropagation()}>
+                                <div className="modal-header">
+                                    <h2 className="modal-title">Edit Entry</h2>
+                                    <button className="modal-close" onClick={() => setEditingEntry(null)}>×</button>
+                                </div>
+
+                                <div className="modal-body">
+                                    <div className="anki-card" onClick={flipCard}>
+                                        {showingFront ? (
+                                            <>
+                                                <div className="anki-card-label">Front</div>
+                                                <div className="anki-card-content formatted-content" dangerouslySetInnerHTML={{ __html: formatContent(editingEntry.front) }} />
+                                                <div className="anki-card-hint">Click to flip</div>
+                                            </>
+                                        ) : (
+                                            <>
+                                                <div className="anki-card-label">Back</div>
+                                                <div className="anki-card-content formatted-content" dangerouslySetInnerHTML={{ __html: formatContent(editingEntry.back) }} />
+                                                <div className="anki-card-hint">Click to flip</div>
+                                            </>
+                                        )}
+                                    </div>
+
+                                    <div className="edit-form">
+                                        <div className="form-group">
+                                            <label>Result</label>
+                                            <div className="result-toggle">
+                                                <button
+                                                    className={editingEntry.result === 'correct' ? 'active' : 'secondary'}
+                                                    onClick={() => updateEditingEntry('result', 'correct')}
+                                                >
+                                                    ✓ Correct
+                                                </button>
+                                                <button
+                                                    className={editingEntry.result === 'incorrect' ? 'active' : 'secondary'}
+                                                    onClick={() => updateEditingEntry('result', 'incorrect')}
+                                                >
+                                                    ✗ Incorrect
+                                                </button>
+                                            </div>
+                                        </div>
+
+                                        <div className="form-group">
+                                            <label>Question Number</label>
+                                            <input
+                                                type="number"
+                                                value={editingEntry.number || ''}
+                                                onChange={e => updateEditingEntry('number', e.target.value ? parseInt(e.target.value) : null)}
+                                            />
+                                        </div>
+
+                                        <div className="form-group">
+                                            <label>Section</label>
+                                            <input
+                                                type="text"
+                                                list="sections-datalist-modal"
+                                                placeholder="e.g. Thorax, Upper Limb, Head and Neck"
+                                                value={editingEntry.section || ''}
+                                                onChange={e => updateEditingEntry('section', e.target.value)}
+                                            />
+                                            <datalist id="sections-datalist-modal">
+                                                {uniqueSections.map(sec => (
+                                                    <option key={sec} value={sec} />
+                                                ))}
+                                            </datalist>
+                                        </div>
+
+                                        <div className="form-group">
+                                            <label>Front (Question)</label>
+                                            <textarea
+                                                value={editingEntry.front || ''}
+                                                onChange={e => updateEditingEntry('front', e.target.value)}
+                                            />
+                                        </div>
+
+                                        <div className="form-group">
+                                            <label>Back (Answer)</label>
+                                            <textarea
+                                                value={editingEntry.back || ''}
+                                                onChange={e => updateEditingEntry('back', e.target.value)}
+                                            />
+                                        </div>
+
+                                        <div className="form-group">
+                                            <label>Tags (comma-separated)</label>
+                                            <input
+                                                type="text"
+                                                value={Array.isArray(editingEntry.tags) ? editingEntry.tags.join(', ') : ''}
+                                                onChange={e => updateEditingEntry('tags', e.target.value.split(',').map(t => t.trim()).filter(Boolean))}
+                                            />
+                                        </div>
+
+                                        <div className="form-group">
+                                            <label>Notes</label>
+                                            <textarea
+                                                value={editingEntry.notes || ''}
+                                                onChange={e => updateEditingEntry('notes', e.target.value)}
+                                            />
+                                        </div>
+                                    </div>
+                                </div>
+
+                                <div className="modal-actions">
+                                    <button className="secondary" onClick={() => setEditingEntry(null)}>Cancel</button>
+                                    <button onClick={saveEdit}>Save Changes</button>
+                                </div>
+                            </div>
+                        </div>
+                    )}
+                </div>
+            );
+        }
+
+        ReactDOM.render(<App />, document.getElementById('root'));
+
+        // Register service worker for PWA support
+        if ('serviceWorker' in navigator) {
+            window.addEventListener('load', () => {
+                navigator.serviceWorker.register('/sw.js')
+                    .then(reg => console.log('Service Worker registered'))
+                    .catch(err => console.log('Service Worker registration failed:', err));
+            });
+        }
+    </script>
+</body>
+</html>
